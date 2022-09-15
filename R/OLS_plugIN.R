@@ -17,11 +17,13 @@ OLS.updateBounds <- function(env)
 
   if (is.null(env$bounds$K_X)){
 
+    p <- ncol(env$X)
+
     veca_To_mean_over_obs_i_for_KX <- lapply(
       X = 1:env$n,
       FUN = function(i){
         sum( ( env$list_Xtilde_i[[i]] %*% t( env$list_Xtilde_i[[i]] ) -
-                 diag(x = 1, nrow = env$p, ncol = env$p) )^2 )
+                 diag(x = 1, nrow = p, ncol = p) )^2 )
       }
     )
 

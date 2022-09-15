@@ -41,7 +41,7 @@
 #' X1 = rnorm(n, sd = 4)
 #' true_eps = rnorm(n)
 #' Y = 3 + 8 * X1 + true_eps
-#' X = cbind(intercept = 1, X1)
+#' X = cbind(X1)
 #'
 #' myCI <- CI.OLS(Y, X, alpha = 0.05, omega = 0.2, a = 2,
 #'   bounds = list(lambda_m = 1, K_X = 5, K_eps = 5, K_xi = 10),
@@ -63,24 +63,24 @@
 #'
 #' @export
 #'
-CI.OLS_new_bounded <- function(
-  Y, X,
-  alpha = 0.05,
-  omega = NULL, a = NULL,
-  C = NULL, # Borne sur les || Xi tilde %*% Xi tilde'||
-  bounds = list(lambda_m = NULL,
-                K_X = NULL,
-                K_eps = NULL,
-                K_xi = NULL),
-  setup = list(continuity = FALSE, no_skewness = FALSE),
-  regularity = list(C0 = 1,
-                    p = 2,
-                    kappa = 0.99),
-  eps = 0.1,
-  options = list(center = TRUE,
-                 scale = FALSE,
-                 bounded_case = FALSE),
-  matrix_u = diag(NCOL(X)) )
+CI.OLS <- function(
+    Y, X,
+    alpha = 0.05,
+    omega = NULL, a = NULL,
+    C = NULL, # Borne sur les || Xi tilde %*% Xi tilde'||
+    bounds = list(lambda_m = NULL,
+                  K_X = NULL,
+                  K_eps = NULL,
+                  K_xi = NULL),
+    setup = list(continuity = FALSE, no_skewness = FALSE),
+    regularity = list(C0 = 1,
+                      p = 2,
+                      kappa = 0.99),
+    eps = 0.1,
+    options = list(center = TRUE,
+                   scale = FALSE,
+                   bounded_case = FALSE),
+    matrix_u = diag(NCOL(X)+1) )
 {
   # Force X to be a matrix, even if there is only one variable
   # Same for matrix_u
@@ -93,8 +93,10 @@ CI.OLS_new_bounded <- function(
   if( nrow(Y) != nrow(X) ){
     stop("Y should have the same number of observations as X.")
   }
-  if (ncol(matrix_u) != ncol(X)){
-    stop("matrix_u should have the same number of columns as X")
+  if (ncol(matrix_u) != ncol(X) + 1){
+    stop("matrix_u should have exactly one more column than X. ",
+         "The first column of matrix_u is then interpreted ",
+         "as the coefficient of the intercept.")
   }
   if (any(unlist(lapply(1:ncol(X), FUN = function(i) {length(unique(X[,i])) == 1})))){
     stop("X should not contain any constant columns.")
@@ -102,7 +104,6 @@ CI.OLS_new_bounded <- function(
 
   number_u <- nrow(matrix_u)
   n <- nrow(X)
-  p <- ncol(X)
 
   # Choice of omega and a, if they are not provided yet.
   env <- environment()
