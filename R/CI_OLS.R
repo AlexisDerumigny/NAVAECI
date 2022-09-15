@@ -1,6 +1,67 @@
-# Pour voir le cas borne (+ d'autres ameliorations danas temp du Latex)
-# Realisation : 17 janvier 2022
-
+#' Compute valid CI for an ordinary least squares regression
+#'
+#' @param Y vector of observations of the explained variables
+#' @param X matrix of explanatory variables
+#' @param alpha 1 - level of confidence of the CI
+#' @param omega the tuning parameter \eqn{\omega} of the interval
+#' @param a the tuning parameter \eqn{a} of the interval
+#' @param bounds list of bounds for the DGP.
+#' It can contain the following items: \itemize{
+#'    \item lambda_m
+#'    \item K_X
+#'    \item K_eps
+#'    \item K_xi, K3_xi, lambda3_xi, K3tilde_xi
+#' }
+#' The bounds that are not given are replaced by plug-ins.
+#' For K3_xi, lambda3_xi and K3tilde_xi, the bounds are obtained
+#' from K_xi (= K4_xi)
+#'
+#' @param matrix_u each row of this matrix is understood as a new vector u
+#' for which a confidence interval should be computed.
+#' By default \code{matrix_u} is the identity matrix, corresponding
+#' to the canonical basis of \eqn{R^p}.
+#'
+#' @return This function returns a data frame consisting of an observation
+#' for each vector u given as a line of \code{matrix_u},
+#' with the following columns: \itemize{
+#'    \item \code{lower}: lower bound of the confidence interval
+#'    \item \code{upper}: upper bound of the confidence interval
+#'    \item \code{regime}: the regime used for the computation of the CI.
+#'    Four regimes are possible: \itemize{
+#'        \item the degenerate regimes \code{R1} and \code{R2} in which
+#'        the confidence interval is \code{(-Inf, Inf)}.
+#'        \item the exponential regime \code{Exp}
+#'        \item the Edgeworth regime \code{Edg}.
+#'    }
+#' }
+#'
+#' @examples
+#' n = 20
+#' X1 = rnorm(n, sd = 4)
+#' true_eps = rnorm(n)
+#' Y = 3 + 8 * X1 + true_eps
+#' X = cbind(intercept = 1, X1)
+#'
+#' myCI <- CI.OLS(Y, X, alpha = 0.05, omega = 0.2, a = 2,
+#'   bounds = list(lambda_m = 1, K_X = 5, K_eps = 5, K_xi = 10),
+#'   setup = list(continuity = FALSE, no_skewness = FALSE) )
+#'
+#' print(myCI)
+#'
+#' myCI <- CI.OLS(Y, X, alpha = 0.05, omega = 0.2, a = 2,
+#'   bounds = list(lambda_m = 1, K_X = 5, K_eps = 5, K_xi = 20),
+#'   setup = list(continuity = TRUE, no_skewness = TRUE) )
+#'
+#' print(myCI)
+#'
+#' myCI <- CI.OLS(Y, X, alpha = 0.01, omega = 0.2, a = 2,
+#'   bounds = list(lambda_m = 1, K_X = 5, K_eps = 5, K_xi = 10),
+#'   setup = list(continuity = TRUE, no_skewness = TRUE) )
+#'
+#' print(myCI)
+#'
+#' @export
+#'
 CI.OLS_new_bounded <- function(
   Y_data, X_data,
   alpha = 0.05,
