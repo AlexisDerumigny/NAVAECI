@@ -37,7 +37,7 @@
 #' }
 #'
 #' @examples
-#' n = 20
+#' n = 2000
 #' X1 = rnorm(n, sd = 4)
 #' true_eps = rnorm(n)
 #' Y = 3 + 8 * X1 + true_eps
@@ -90,7 +90,7 @@ CI.OLS <- function(
   if(!is.vector(Y)) {
     stop("Y should be a vector.")
   }
-  if( nrow(Y) != nrow(X) ){
+  if( length(Y) != nrow(X) ){
     stop("Y should have the same number of observations as X.")
   }
   if (ncol(matrix_u) != ncol(X) + 1){
@@ -107,11 +107,11 @@ CI.OLS <- function(
 
   # Choice of omega and a, if they are not provided yet.
   env <- environment()
-  OLS.updateTuningParameters(env = env, bounded_case = bounded_case)
+  OLS.updateTuningParameters(env = env)
 
   # Add a column of ones and take the empirically recentered X
   X <- cbind(matrix(1, nrow = n, ncol = 1),
-            scale(X, center = options$center, scale = options$scale))
+             scale(X, center = options$center, scale = options$scale))
 
   # Estimation of crossproducts and other useful matrices
   XXt <- crossprod(X)
@@ -143,7 +143,7 @@ CI.OLS <- function(
 
   # Control linearization term Rn lin dans le cas borne
 
-  if (isTRUE(bounded_case)){
+  if (isTRUE(options$bounded_case)){
 
     # Borne C
     if (is.null(C)){
@@ -244,10 +244,10 @@ CI.OLS <- function(
   if (!is.null(bounds$K_xi)){
     # K_xi is provided => K_xi and delta_nE are uniform across vectors u
     delta_nE_u = rep(
-      Bound_Edgeworth_Expansion(
+      BoundEdgeworth::Bound_EE1(
         setup = setup, regularity = regularity, n = n,
         K4 = bounds$K_xi, K3 = NULL, lambda3 = NULL, K3tilde = NULL,
-        use_uniform_bounds = use_uniform_bounds, eps = eps),
+        eps = eps),
       times = number_u)
 
   } else {
@@ -256,13 +256,12 @@ CI.OLS <- function(
       X = array(1:number_u, dim = number_u),
       MARGIN = 1,
       FUN = function(index_u){
-        return( Bound_Edgeworth_Expansion(
+        return( BoundEdgeworth::Bound_EE1(
           setup = setup, regularity = regularity, n = n,
           K4 = bounds$K_xi_u[[index_u]],
           K3 = bounds$K3_xi_u[[index_u]],
           lambda3 = bounds$lambda3_xi_u[[index_u]],
           K3tilde = bounds$K3tilde_xi_u[[index_u]],
-          use_uniform_bounds = use_uniform_bounds,
           eps = eps) ) } )
   }
 
@@ -327,9 +326,8 @@ CI.OLS <- function(
 }
 
 OLS.CIs.Exp.extend_new <- function(
-  n, alpha, a, K_X, delta,
-  nu_nExp, nuApprox_u, bound_Voracle,
-  choice_new_bound_RnLin)
+    n, alpha, a, K_X, delta,
+    nu_nExp, nuApprox_u, bound_Voracle)
 {
 
   part1_Qn = sqrt( 2 * (1 + a) * ( 1 - log(alpha/2 - nu_nExp) ) )
@@ -342,9 +340,8 @@ OLS.CIs.Exp.extend_new <- function(
 }
 
 OLS.CIs.Edg.extend_new <- function(
-  n, alpha, a, K_X, delta,
-  nu_nEdg, nuApprox_u, bound_Voracle,
-  choice_new_bound_RnLin)
+    n, alpha, a, K_X, delta,
+    nu_nEdg, nuApprox_u, bound_Voracle)
 {
 
   part1_Qn = sqrt(a) * stats::qnorm(1 - alpha/2 + nu_nEdg)
@@ -367,10 +364,10 @@ OLS.Nu_nExp <- function(alpha, omega, a, K_xi, n)
 }
 
 OLS.RnVar_bounded <- function(
-  delta, n, norms_row_X, residuals,
-  lambda_m, K_X, K_eps,
-  concentr_XXtranspose,
-  X, inverse_XXtbar)
+    delta, n, norms_row_X, residuals,
+    lambda_m, K_X, K_eps,
+    concentr_XXtranspose,
+    X, inverse_XXtbar)
 {
 
   cc <- concentr_XXtranspose

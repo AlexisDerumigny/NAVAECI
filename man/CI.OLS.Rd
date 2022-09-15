@@ -5,21 +5,26 @@
 \title{Compute valid CI for an ordinary least squares regression}
 \usage{
 CI.OLS(
-  Y_data,
-  X_data,
+  Y,
+  X,
   alpha = 0.05,
-  omega,
-  a,
-  regression_made,
+  omega = NULL,
+  a = NULL,
+  C = NULL,
   bounds = list(lambda_m = NULL, K_X = NULL, K_eps = NULL, K_xi = NULL),
   setup = list(continuity = FALSE, no_skewness = FALSE),
   regularity = list(C0 = 1, p = 2, kappa = 0.99),
   eps = 0.1,
-  use_uniform_bounds = TRUE,
-  matrix_u = diag(NCOL(X_data))
+  options = list(center = TRUE, scale = FALSE, bounded_case = FALSE),
+  matrix_u = diag(NCOL(X) + 1)
 )
 }
 \arguments{
+\item{Y}{vector of observations of the explained variables}
+
+\item{X}{matrix of explanatory variables.
+\code{X} must not contain a constant column.}
+
 \item{alpha}{1 - level of confidence of the CI}
 
 \item{omega}{the tuning parameter \eqn{\omega} of the interval}
@@ -41,10 +46,6 @@ from K_xi (= K4_xi)}
 for which a confidence interval should be computed.
 By default \code{matrix_u} is the identity matrix, corresponding
 to the canonical basis of \eqn{R^p}.}
-
-\item{Y}{vector of observations of the explained variables}
-
-\item{X}{matrix of explanatory variables}
 }
 \value{
 This function returns a data frame consisting of an observation
@@ -65,11 +66,11 @@ with the following columns: \itemize{
 Compute valid CI for an ordinary least squares regression
 }
 \examples{
-n = 20
+n = 2000
 X1 = rnorm(n, sd = 4)
 true_eps = rnorm(n)
 Y = 3 + 8 * X1 + true_eps
-X = cbind(intercept = 1, X1)
+X = cbind(X1)
 
 myCI <- CI.OLS(Y, X, alpha = 0.05, omega = 0.2, a = 2,
   bounds = list(lambda_m = 1, K_X = 5, K_eps = 5, K_xi = 10),

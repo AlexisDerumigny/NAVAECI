@@ -4,7 +4,7 @@
 #'
 #' @noRd
 #'
-OLS.updateTuningParameters <- function(env, bounded_case = FALSE)
+OLS.updateTuningParameters <- function(env)
 {
 
   # Choice for omega
@@ -20,7 +20,7 @@ OLS.updateTuningParameters <- function(env, bounded_case = FALSE)
     # nu_nExp is increasing in omega
     # and avoid R2 regime
 
-    if (bounded_case){
+    if (env$options$bounded_case){
 
       default_power_omega = 2/3 # doit etre plus grand que 1/2
       env$omega = 1 / env$n^default_power_omega
