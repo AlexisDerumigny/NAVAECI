@@ -1,7 +1,8 @@
 #' Compute valid CI for an ordinary least squares regression
 #'
 #' @param Y vector of observations of the explained variables
-#' @param X matrix of explanatory variables
+#' @param X matrix of explanatory variables.
+#' \code{X} must not contain a constant column.
 #' @param alpha 1 - level of confidence of the CI
 #' @param omega the tuning parameter \eqn{\omega} of the interval
 #' @param a the tuning parameter \eqn{a} of the interval
@@ -63,10 +64,9 @@
 #' @export
 #'
 CI.OLS_new_bounded <- function(
-  Y_data, X_data,
+  Y, X,
   alpha = 0.05,
   omega = NULL, a = NULL,
-  bounded_case = FALSE,
   C = NULL, # Borne sur les || Xi tilde %*% Xi tilde'||
   bounds = list(lambda_m = NULL,
                 K_X = NULL,
@@ -77,31 +77,48 @@ CI.OLS_new_bounded <- function(
                     p = 2,
                     kappa = 0.99),
   eps = 0.1,
-  use_uniform_bounds = TRUE,
-  matrix_u = diag(NCOL(X_data)) )
+  options = list(center = TRUE,
+                 scale = FALSE,
+                 bounded_case = FALSE),
+  matrix_u = diag(NCOL(X)) )
 {
+  # Force X and to be a matrix, even if there is only one variable
+  # Same for matrix_u
+  if(NCOL(X) == 1) {X <- matrix(X, ncol = 1)}
+  if(NCOL(matrix_u) == 1) {matrix_u <- matrix(matrix_u, ncol = 1)}
 
-  number_u = NROW(matrix_u)
+  if(!is.vector(Y)) {
+    stop("Y should be a vector.")
+  }
+  if( nrow(Y) != nrow(X) ){
+    stop("Y should have the same number of observations as X.")
+  }
+  if (ncol(matrix_u) != ncol(X)){
+    stop("matrix_u should have the same number of columns as X")
+  }
+  if (any(unlist(lapply(1:ncol(X), FUN = function(i) {length(unique(X[,i])) == 1})))){
+    stop("X should not contain any constant columns.")
+  }
 
-  n = nrow(X_data)
+  number_u <- nrow(matrix_u)
+  n <- nrow(X)
+  p <- ncol(X)
 
-  # Choix omega et a
+  # Choice of omega and a, if they are not provided yet.
   env <- environment()
   OLS.updateTuningParameters(env = env, bounded_case = bounded_case)
 
-  # Take the empirically recentred X
-  X_centered_wo_cst = scale(X_data[,-1], center = TRUE, scale = FALSE)
-  X = cbind(matrix(1, nrow = n, ncol = 1), X_centered_wo_cst)
-  Y = Y_data
+  # Add a column of ones and take the empirically recentered X
+  X <- cbind(matrix(1, nrow = n, ncol = 1),
+            scale(X, center = options$center, scale = options$scale))
 
+  # Estimation of crossproducts and other useful matrices
   XXt <- crossprod(X)
-  XXtbar = (1 / n) * XXt
-  minvpXXtbar = min(eigen(XXtbar, only.values = TRUE)$values)
+  XXtbar <- (1 / n) * XXt
+  minvpXXtbar <- min(eigen(XXtbar, only.values = TRUE)$values)
   inverse_XXt <- solve(XXt)
   inverse_XXtbar <- n * inverse_XXt
-
-  # Estimate of E(XX')^{-1/2}
-  inverse_sqrt_XXtbar <- expm::sqrtm(inverse_XXtbar)
+  inverse_sqrt_XXtbar <- expm::sqrtm(inverse_XXtbar) # Estimate of E(XX')^{-1/2}
 
   # X_i tilde
   list_Xtilde_i <- purrr::map(1:n,

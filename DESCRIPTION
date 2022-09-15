@@ -10,4 +10,5 @@ License: What license is it under?
 Encoding: UTF-8
 Imports: 
   BoundEdgeworth
+  expm
 RoxygenNote: 7.1.2
