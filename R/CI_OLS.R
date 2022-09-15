@@ -82,7 +82,7 @@ CI.OLS_new_bounded <- function(
                  bounded_case = FALSE),
   matrix_u = diag(NCOL(X)) )
 {
-  # Force X and to be a matrix, even if there is only one variable
+  # Force X to be a matrix, even if there is only one variable
   # Same for matrix_u
   if(NCOL(X) == 1) {X <- matrix(X, ncol = 1)}
   if(NCOL(matrix_u) == 1) {matrix_u <- matrix(matrix_u, ncol = 1)}
@@ -121,42 +121,21 @@ CI.OLS_new_bounded <- function(
   inverse_sqrt_XXtbar <- expm::sqrtm(inverse_XXtbar) # Estimate of E(XX')^{-1/2}
 
   # X_i tilde
-  list_Xtilde_i <- purrr::map(1:n,
-                              ~ inverse_sqrt_XXtbar %*% matrix(X[.x,], ncol = 1))
+  # this is a list of n elements which are all vectors of size p
+  list_Xtilde_i <- lapply(
+    X = 1:n,
+    FUN = function(i) { inverse_sqrt_XXtbar %*% matrix(X[i, ], ncol = 1) } )
 
-  # Bound lambda_m
-  bounds$lambda_m = minvpXXtbar
-
-  # Bound K_X (K_reg)
-
-  # To mean across observations i
-  To_mean_over_obs_i_for_KX_new <- function(index_obs_i, list_Xtilde_i, p){
-    return(
-      sum( c(
-        list_Xtilde_i[[index_obs_i]] %*% t(list_Xtilde_i[[index_obs_i]]) -
-          diag(x = 1, nrow = p, ncol = p) )^2 )
-    )
-  }
-  veca_To_mean_over_obs_i_for_KX_new <- purrr::map_dbl(
-    1:n, To_mean_over_obs_i_for_KX_new,
-    list_Xtilde_i = list_Xtilde_i, p = ncol(X))
-
-  bound_KX_estimated_plug_in <- mean(veca_To_mean_over_obs_i_for_KX_new)
-  bounds$K_X = bound_KX_estimated_plug_in
+  norms_row_X = apply(X = X, MARGIN = 1, FUN = function(u){sqrt(sum(u^2))})
+  norms_row_X_tilde = unlist(lapply(X = list_Xtilde_i,
+                                    FUN = function(x) {sqrt(sum((x)^2))} ) )
 
   # Regression
   reg = stats::lm(Y ~ X - 1)
   betahat = reg$coefficients
 
-  norms_row_X = apply(X = X, MARGIN = 1, FUN = function(u){sqrt(sum(u^2))})
-
-  norms_row_X_tilde = purrr::map_dbl(list_Xtilde_i, ~ sqrt(sum(c(.x)^2)))
-
-  # Bound K_eps
-  bounds$K_eps <- mean( norms_row_X_tilde^4 * reg$residuals^4 )
-
-  # Bound Xi
-  bounds$K_xi_u = rep(bounds$K_xi, length.out = number_u)
+  # Updating bounds (if they were not given)
+  OLS.updateBounds(env)
 
   # Delta, omega, a
   delta = alpha * omega / 2
@@ -191,8 +170,6 @@ CI.OLS_new_bounded <- function(
       4 * C * log(2 * d / delta) / (3*n)
 
   } else {
-
-    # sqrt_K_X_div_n_delta <- sqrt(K_X / (n * delta))
 
     concentr_XXtranspose <- sqrt(bounds$K_X / (n * delta))
   }

@@ -16,9 +16,16 @@ OLS.updateBounds <- function(env)
   }
 
   if (is.null(env$bounds$K_X)){
-    env$bounds$K_X <- mean( purrr::map_dbl(1:env$n,
-                                           To_mean_over_observation_i_for_K_X,
-                                           X = env$X, XXtbar = env$XXtbar) )
+
+    veca_To_mean_over_obs_i_for_KX <- lapply(
+      X = 1:env$n,
+      FUN = function(i){
+        sum( ( env$list_Xtilde_i[[i]] %*% t( env$list_Xtilde_i[[i]] ) -
+                 diag(x = 1, nrow = env$p, ncol = env$p) )^2 )
+      }
+    )
+
+    env$bounds$K_X <- mean(veca_To_mean_over_obs_i_for_KX)
   }
 
   if (is.null(env$bounds$K_eps)){
@@ -32,7 +39,7 @@ OLS.updateBounds <- function(env)
                                          inverse_XXtbar = env$inverse_XXtbar,
                                          matrix_u = env$matrix_u,
                                          residuals = env$reg$residuals)
-                              ), cbind)
+    ), cbind)
     mean_xi4_u <- rowMeans(xi_u_i^4)
     mean_xi2_u <- rowMeans(xi_u_i^2)
     empirical_kurtosis_xi_u <- mean_xi4_u / mean_xi2_u^2
@@ -66,15 +73,6 @@ OLS.updateBounds <- function(env)
 
 ## Other functions used for plug-ins ===============================
 
-#' Function used for the plug-in of K_X
-#'
-#' @noRd
-#'
-To_mean_over_observation_i_for_K_X <- function(index_obs_i,
-                                               X, XXtbar){
-  return( sum( c( ( matrix(X[index_obs_i,], ncol = 1) %*%
-                      t(matrix(X[index_obs_i,], ncol = 1)) ) - XXtbar )^2 ) )
-}
 
 #' Function used for the plug-in of K_xi
 #' Computation of xi for a given observation i
@@ -90,11 +88,3 @@ Compute_xi_u_for_one_obs_i <- function(index_obs_i,
                matrix(X[index_obs_i,], ncol = 1) * residuals[[index_obs_i]]) )
 }
 
-# Essai pour un KX normalise avec des bornes relatives - commente pour le moment
-# To_mean_KX_normalized_on_i <- function(i, X, inverse_XXtbar){
-#   sum( c(
-#     inverse_XXtbar %*%
-#       matrix(X[i,], ncol = 1) %*% t(matrix(X[i,], ncol = 1)) -
-#       diag(x = 1,
-#            nrow = NROW(inverse_XXtbar), ncol = NCOL(inverse_XXtbar)) )^2)
-# }
