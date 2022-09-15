@@ -13,7 +13,7 @@ CI.OLS(
   C = NULL,
   bounds = list(lambda_m = NULL, K_X = NULL, K_eps = NULL, K_xi = NULL),
   setup = list(continuity = FALSE, no_skewness = FALSE),
-  regularity = list(C0 = 1, p = 2, kappa = 0.99),
+  regularity = list(C0 = 1, p = 2),
   eps = 0.1,
   options = list(center = TRUE, scale = FALSE, bounded_case = FALSE),
   matrix_u = diag(NCOL(X) + 1)
@@ -66,7 +66,7 @@ with the following columns: \itemize{
 Compute valid CI for an ordinary least squares regression
 }
 \examples{
-n = 2000
+n = 20000
 X1 = rnorm(n, sd = 4)
 true_eps = rnorm(n)
 Y = 3 + 8 * X1 + true_eps

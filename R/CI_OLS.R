@@ -37,7 +37,7 @@
 #' }
 #'
 #' @examples
-#' n = 2000
+#' n = 20000
 #' X1 = rnorm(n, sd = 4)
 #' true_eps = rnorm(n)
 #' Y = 3 + 8 * X1 + true_eps
@@ -67,15 +67,14 @@ CI.OLS <- function(
     Y, X,
     alpha = 0.05,
     omega = NULL, a = NULL,
-    C = NULL, # Borne sur les || Xi tilde %*% Xi tilde'||
+    C = NULL, # Bound on || Xi tilde %*% Xi tilde'||
     bounds = list(lambda_m = NULL,
                   K_X = NULL,
                   K_eps = NULL,
                   K_xi = NULL),
     setup = list(continuity = FALSE, no_skewness = FALSE),
     regularity = list(C0 = 1,
-                      p = 2,
-                      kappa = 0.99),
+                      p = 2),
     eps = 0.1,
     options = list(center = TRUE,
                    scale = FALSE,
@@ -88,18 +87,19 @@ CI.OLS <- function(
   if(NCOL(matrix_u) == 1) {matrix_u <- matrix(matrix_u, ncol = 1)}
 
   if(!is.vector(Y)) {
-    stop("Y should be a vector.")
+    stop("Y must be a vector.")
   }
   if( length(Y) != nrow(X) ){
-    stop("Y should have the same number of observations as X.")
+    stop("Y must have the same number of observations as X.")
   }
   if (ncol(matrix_u) != ncol(X) + 1){
-    stop("matrix_u should have exactly one more column than X. ",
+    stop("matrix_u must have exactly one more column than X. ",
          "The first column of matrix_u is then interpreted ",
-         "as the coefficient of the intercept.")
+         "as the coefficient of the intercept. The other columns ",
+         "of matrix_u correspond respectively to the columns of X.")
   }
   if (any(unlist(lapply(1:ncol(X), FUN = function(i) {length(unique(X[,i])) == 1})))){
-    stop("X should not contain any constant columns.")
+    stop("X must not contain any constant columns.")
   }
 
   number_u <- nrow(matrix_u)
