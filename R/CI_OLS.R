@@ -105,10 +105,6 @@ CI.OLS <- function(
   number_u <- nrow(matrix_u)
   n <- nrow(X)
 
-  # Choice of omega and a, if they are not provided yet.
-  env <- environment()
-  OLS.updateTuningParameters(env = env)
-
   # Add a column of ones and take the empirically recentered X
   X <- cbind(matrix(1, nrow = n, ncol = 1),
              scale(X, center = options$center, scale = options$scale))
@@ -135,11 +131,19 @@ CI.OLS <- function(
   reg = stats::lm(Y ~ X - 1)
   betahat = reg$coefficients
 
-  # Updating bounds (if they were not given)
-  OLS.updateBounds(env)
+  # Computation of Vhat
+  Vhat = n * inverse_XXt %*% (crossprod(X * reg$residuals)) %*% inverse_XXt
+  Vhat_u = apply(X = matrix_u, MARGIN = 1,
+                 FUN = function(u){t(u) %*% Vhat %*% u})
 
-  # Delta, omega, a
+  # Choice of omega, a, and bounds (if they were not given)
+  env <- environment()
+  OLS.updateTuningParameters(env = env)
+  OLS.updateBounds(env = env)
+
+  # Computation of delta
   delta = alpha * omega / 2
+
 
   # Control linearization term Rn lin dans le cas borne
 
@@ -175,6 +179,7 @@ CI.OLS <- function(
     concentr_XXtranspose <- sqrt(bounds$K_X / (n * delta))
   }
 
+
   # without the product by norm of u
   base_Rnlin = sqrt(2 / n) * concentr_XXtranspose /
     ((1 - concentr_XXtranspose) * sqrt(bounds$lambda_m)) *
@@ -183,12 +188,6 @@ CI.OLS <- function(
   Rnlin_u = apply(X = matrix_u, MARGIN = 1,
                   FUN = function(u){sqrt(sum(u^2))}) * base_Rnlin
 
-  # Vhat
-
-  Vhat = n * inverse_XXt %*% (crossprod(X * reg$residuals)) %*% inverse_XXt
-
-  Vhat_u = apply(X = matrix_u, MARGIN = 1,
-                 FUN = function(u){t(u) %*% Vhat %*% u})
 
   # Preparing the final matrix
   result = matrix(nrow = number_u, ncol = 4)
