@@ -63,6 +63,13 @@
 #'
 #' @export
 #'
+#'
+#'
+#'
+
+#TODO
+# voir pour harmoniser nom R avec notation papier: par exemple K_X, K_reg
+
 CI.OLS <- function(
     Y, X,
     alpha = 0.05,
@@ -149,6 +156,9 @@ CI.OLS <- function(
 
   if (isTRUE(options$bounded_case)){
 
+    
+    #TODO: a mettre dans une fonction pour calculer la constante de concentration
+    # avec une option bounded case ou non.
     # Borne C
     if (is.null(C)){
       C = max(norms_row_X_tilde^2)
@@ -175,18 +185,19 @@ CI.OLS <- function(
       4 * C * log(2 * d / delta) / (3*n)
 
   } else {
-
+    # Concentration of XX transpose without assuming bounded regressors
+    
     concentr_XXtranspose <- sqrt(bounds$K_X / (n * delta))
   }
 
 
-  # without the product by norm of u
-  base_Rnlin = sqrt(2 / n) * concentr_XXtranspose /
-    ((1 - concentr_XXtranspose) * sqrt(bounds$lambda_m)) *
-    (bounds$K_eps / delta)^(1/4)
+  # Rn_lin
+  
+  RnLin_without_norm_u <- RnLin(concentr_XXtranspose = concentr_XXtranspose,
+                                bounds = bounds, delta = delta)
 
-  Rnlin_u = apply(X = matrix_u, MARGIN = 1,
-                  FUN = function(u){sqrt(sum(u^2))}) * base_Rnlin
+  Rnlin_u <- apply(X = matrix_u, MARGIN = 1,
+                   FUN = function(u){sqrt(sum(u^2))}) * RnLin_without_norm_u
 
 
   # Preparing the final matrix
@@ -272,10 +283,10 @@ CI.OLS <- function(
     Vhat_u +
     apply(X = matrix_u, MARGIN = 1,
           FUN = function(u){sum(u^2)}) *
-    OLS.RnVar_bounded(
+    RnVar(
       delta = delta, n = n, norms_row_X = norms_row_X,
       residuals = reg$residuals,
-      lambda_m = bounds$lambda_m, K_X = bounds$K_X, K_eps = bounds$K_eps,
+      bounds = bounds,
       concentr_XXtranspose = concentr_XXtranspose,
       X = X, inverse_XXtbar = inverse_XXtbar)
 
@@ -362,15 +373,31 @@ OLS.Nu_nExp <- function(alpha, omega, a, K_xi, n)
   return (result)
 }
 
-OLS.RnVar_bounded <- function(
+
+RnLin <- function(concentr_XXtranspose, bounds, delta){
+  
+  cc <- concentr_XXtranspose
+  
+  RnLin_without_norm_u <- 
+    sqrt(2) * cc / 
+  ((1 - cc) * sqrt(bounds$lambda_m)) *
+  (bounds$K_eps / delta)^(1/4)
+
+  return(RnLin_without_norm_u)
+}
+
+
+RnVar <- function(
     delta, n, norms_row_X, residuals,
-    lambda_m, K_X, K_eps,
+    bounds,
     concentr_XXtranspose,
     X, inverse_XXtbar)
 {
 
   cc <- concentr_XXtranspose
-
+  lambda_m <- bounds$lambda_m
+  K_eps <- bounds$K_eps
+  
   part1 = (2 / (n * lambda_m^3)) *
     (cc / (1 - cc) + 1)^2 *
     sqrt(K_eps / delta) *
@@ -381,13 +408,12 @@ OLS.RnVar_bounded <- function(
     (K_eps / delta)^(1/4) *
     mean(norms_row_X^3 * abs(residuals))
 
-  mean_norms_square_X_residuals <- mean(norms_row_X^2 * residuals^2)
   part3 = (1 / lambda_m^2) * (cc / (1 - cc))^2 *
-    mean_norms_square_X_residuals
+    mean(norms_row_X^2 * residuals^2)
 
-  part4 = 2 / lambda_m *
-    (1 - cc)^(-1) * cc *
+  part4 = 2 / lambda_m * (cc / (1 - cc)) *
     base::norm(x = n^(-1) * crossprod(X * residuals) %*% inverse_XXtbar,
                type = "2")
+  
   return(part1 + part2 + part3 + part4)
 }
