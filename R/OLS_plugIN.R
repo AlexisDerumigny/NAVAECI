@@ -70,6 +70,33 @@ OLS.updateBounds <- function(env)
                                   length.out = env$number_u)
   }
 
+  # Bound on C
+  # (used for Bernstein concentration of square matrices, applied to A = X_i tilde X_i tilde')
+  if (is.null(env$bounds$C)){
+    env$bounds$C = max(env$norms_row_X_tilde^2)
+  }
+
+  # Bound on B
+  # (used for Bernstein concentration of square matrices, applied to A = X_i tilde X_i tilde')
+  if (is.null(env$bounds$B)){
+    list_A_i = purrr::map(1:env$n,
+                          ~ matrix(env$list_Xtilde_i[[.x]]) %*%
+                            t(matrix(env$list_Xtilde_i[[.x]])))
+
+    # By definition of X_i tilde,
+    # E[A] = E[X_i tilde X_i tilde'] = identity matrix of size d
+    d = ncol(env$X)
+    expectation_A = diag(d)
+
+    # List of the (A - E(A))(A - E(A))
+    list_A_mEA_sq = purrr::map(1:env$n,
+                               ~ (list_A_i[[.x]] - expectation_A) %*%
+                                 (list_A_i[[.x]] - expectation_A))
+
+    B_before_norm = purrr::reduce(list_A_mEA_sq, `+`, .init = matrix(0, ncol = d, nrow = d)) / n
+    env$bounds$B = base::norm(x = B_before_norm, type = "2")
+  }
+
 }
 
 

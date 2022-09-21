@@ -15,7 +15,7 @@
 #'    \item \code{K3_xi}
 #'    \item \code{lambda3_xi}
 #'    \item \code{K3tilde_xi}
-#'    \item \code{C} Bound on || Xi tilde %*% Xi tilde'||
+#'    \item \code{B}, \code{C} Bounds for the concentration of || Xi tilde %*% Xi tilde'||
 #' }
 #' The bounds that are not given are replaced by plug-ins.
 #' For K3_xi, lambda3_xi and K3tilde_xi, the bounds are obtained
@@ -157,8 +157,7 @@ CI.OLS <- function(
   # Concentration of XXt
   concentr_XXtranspose = concentrationXXt(
     bounded_case = options$bounded_case, bounds = bounds,
-    norms_row_X_tilde = norms_row_X_tilde, list_Xtilde_i = list_Xtilde_i,
-    n = n, delta = delta)
+    n = n, d = ncol(X), delta = delta)
 
   # Rn_lin
   Rnlin_u <- RnLin(concentr_XXtranspose = concentr_XXtranspose,
@@ -387,39 +386,15 @@ RnVar <- function(
 
 
 
-concentrationXXt <- function(bounded_case, bounds,
-                             norms_row_X_tilde, list_Xtilde_i,
-                             n, delta)
+concentrationXXt <- function(bounded_case, bounds, n, d, delta)
 {
   if (bounded_case){
+    # Concentration of XX transpose, assuming bounded regressors
 
-    # Bound on C
-    if (is.null(bounds$C)){
-      bounds$C = max(norms_row_X_tilde^2)
-    }
-
-    # Plug-in de la borne B (A = X_i tilde X_i tilde transpose)
-    list_A_i = purrr::map(1:n,
-                          ~ matrix(list_Xtilde_i[[.x]]) %*%
-                            t(matrix(list_Xtilde_i[[.x]])))
-
-    # connu theoriquement par definition des X_i tilde
-    d = ncol(X)
-    expectation_A = diag(x = 1, nrow = d, ncol = d)
-
-    # Liste des (A - E(A))(A - E(A))
-    list_A_mEA_sq = purrr::map(1:n,
-                               ~ (list_A_i[[.x]] - expectation_A) %*%
-                                 (list_A_i[[.x]] - expectation_A))
-
-    B_before_norm = purrr::reduce(list_A_mEA_sq, `+`, .init = matrix(0, ncol = d, nrow = d)) / n
-    B = base::norm(x = B_before_norm, type = "2")
-
-    concentr_XXtranspose = sqrt(2 * B * log(2 * d / delta) / n) +
-      4 * C * log(2 * d / delta) / (3*n)
+    concentr_XXtranspose = concentration_Bernstein(
+      B = bounds$B, C = bounds$C, delta = delta, n = n, d = d)
 
   } else {
-
     # Concentration of XX transpose without assuming bounded regressors
 
     concentr_XXtranspose <- sqrt(bounds$K_X / (n * delta))
@@ -428,3 +403,18 @@ concentrationXXt <- function(bounded_case, bounds,
   return (concentr_XXtranspose)
 }
 
+
+#' Compute the concentration bound from Lemma C.2
+#' (Bernstein-type lemma for concentration of random, bounded matrices)
+#'
+#' @param B \eqn{:= || \E [ (A-\E[A]) (A-\E[A]) ] ||}.
+#' @param C almost sure upper bound on the operator 2-norm of A.
+#' @param delta confidence level
+#' @param n sample size
+#' @param d dimension of A
+#'
+concentration_Bernstein <- function(B, C, delta, n, d)
+{
+  return( sqrt(2 * B * log(2 * d / delta) / n) +
+            4 * C * log(2 * d / delta) / (3*n) )
+}
