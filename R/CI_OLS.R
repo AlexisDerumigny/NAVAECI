@@ -85,7 +85,6 @@ CI.OLS <- function(
                       p = 2),
     eps = 0.1,
     options = list(center = TRUE,
-                   scale = FALSE,
                    bounded_case = FALSE),
     matrix_u = diag(NCOL(X)+1) )
 {
@@ -120,7 +119,7 @@ CI.OLS <- function(
 
   # Add a column of ones and take the empirically recentered X
   X <- cbind(matrix(1, nrow = n, ncol = 1),
-             scale(X, center = options$center, scale = options$scale))
+             scale(X, center = options$center, scale = FALSE) )
 
   # Estimation of crossproducts and other useful matrices
   XXt <- crossprod(X)
