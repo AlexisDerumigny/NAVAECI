@@ -23,11 +23,6 @@
 #' For K3_xi, lambda3_xi and K3tilde_xi, the bounds are obtained
 #' from K_xi (= K4_xi)
 #'
-#' #
-#' # TODO
-#' # voir pour harmoniser nom R avec notation papier: par exemple K_reg, K_reg
-#' #
-#'
 #' @param matrix_u each row of this matrix is understood as a new vector u
 #' for which a confidence interval should be computed.
 #' By default \code{matrix_u} is the identity matrix, corresponding
