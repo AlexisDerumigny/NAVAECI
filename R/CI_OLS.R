@@ -186,8 +186,8 @@ CI.OLS <- function(
   # the plug-in bounds (to have an idea)
   # the usual asymptotic CIs
   result_asymp = matrix(ncol = 2, nrow = number_u)
-  rownames(result_asymp) = rownames(result)
-  colnames(result_asymp) = colnames(result)[1:2]
+  colnames(result_asymp) = c("lower", "upper")
+  rownames(result_asymp) = c("intercept", colnames(X))
   CIs.Asymp.extend = (stats::qnorm(1 - alpha/2) / sqrt(n)) * sqrt(Vhat_u)
   result_asymp[,1] = result$estimate - CIs.Asymp.extend
   result_asymp[,2] = result$estimate + CIs.Asymp.extend
@@ -195,7 +195,7 @@ CI.OLS <- function(
   # 6- Preparing the final matrix ============================================================
   result = matrix(nrow = number_u, ncol = 4)
   colnames(result) <- c("lower", "upper", "regime", "estimate")
-  rownames(result) <- colnames(X)
+  rownames(result) <- c("intercept", colnames(X))
   result = as.data.frame(result)
 
   # u' OLS estimate (temporary, for check)
