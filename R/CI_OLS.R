@@ -8,14 +8,23 @@
 #' @param a the tuning parameter \eqn{a} of the interval
 #' @param bounds list of bounds for the DGP.
 #' It can contain the following items: \itemize{
-#'    \item lambda_m
-#'    \item K_X
-#'    \item K_eps
-#'    \item K_xi, K3_xi, lambda3_xi, K3tilde_xi
+#'    \item \code{lambda_m}
+#'    \item \code{K_X}
+#'    \item \code{K_eps}
+#'    \item \code{K_xi}
+#'    \item \code{K3_xi}
+#'    \item \code{lambda3_xi}
+#'    \item \code{K3tilde_xi}
+#'    \item \code{C} Bound on || Xi tilde %*% Xi tilde'||
 #' }
 #' The bounds that are not given are replaced by plug-ins.
 #' For K3_xi, lambda3_xi and K3tilde_xi, the bounds are obtained
 #' from K_xi (= K4_xi)
+#'
+#' #
+#' # TODO
+#' # voir pour harmoniser nom R avec notation papier: par exemple K_X, K_reg
+#' #
 #'
 #' @param matrix_u each row of this matrix is understood as a new vector u
 #' for which a confidence interval should be computed.
@@ -63,22 +72,15 @@
 #'
 #' @export
 #'
-#'
-#'
-#'
-
-#TODO
-# voir pour harmoniser nom R avec notation papier: par exemple K_X, K_reg
-
 CI.OLS <- function(
     Y, X,
     alpha = 0.05,
     omega = NULL, a = NULL,
-    C = NULL, # Bound on || Xi tilde %*% Xi tilde'||
     bounds = list(lambda_m = NULL,
                   K_X = NULL,
                   K_eps = NULL,
-                  K_xi = NULL),
+                  K_xi = NULL,
+                  C = NULL),
     setup = list(continuity = FALSE, no_skewness = FALSE),
     regularity = list(C0 = 1,
                       p = 2),
@@ -132,7 +134,7 @@ CI.OLS <- function(
 
   norms_row_X = apply(X = X, MARGIN = 1, FUN = function(u){sqrt(sum(u^2))})
   norms_row_X_tilde = unlist(lapply(X = list_Xtilde_i,
-                                    FUN = function(x) {sqrt(sum((x)^2))} ) )
+                                    FUN = function(x) {sqrt(sum(x^2))} ) )
 
   # Regression
   reg = stats::lm(Y ~ X - 1)
@@ -152,53 +154,15 @@ CI.OLS <- function(
   delta = alpha * omega / 2
 
 
-  # Control linearization term Rn lin dans le cas borne
-
-  if (isTRUE(options$bounded_case)){
-
-    
-    #TODO: a mettre dans une fonction pour calculer la constante de concentration
-    # avec une option bounded case ou non.
-    # Borne C
-    if (is.null(C)){
-      C = max(norms_row_X_tilde^2)
-    }
-
-    # Plug-in de la borne B (A = X_i tilde X_i tilde transpose)
-    list_A_i = purrr::map(1:n,
-                          ~ matrix(list_Xtilde_i[[.x]]) %*%
-                            t(matrix(list_Xtilde_i[[.x]])))
-
-    # connu theoriquement par definition des X_i tilde
-    d = ncol(X)
-    expectation_A = diag(x = 1, nrow = d, ncol = d)
-
-    # Liste des (A - E(A))(A - E(A))
-    list_A_mEA_sq = purrr::map(1:n,
-                               ~ (list_A_i[[.x]] - expectation_A) %*%
-                                 (list_A_i[[.x]] - expectation_A))
-
-    B_before_norm = purrr::reduce(list_A_mEA_sq, `+`, .init = matrix(0, ncol = d, nrow = d)) / n
-    B = base::norm(x = B_before_norm, type = "2")
-
-    concentr_XXtranspose = sqrt(2 * B * log(2 * d / delta) / n) +
-      4 * C * log(2 * d / delta) / (3*n)
-
-  } else {
-    # Concentration of XX transpose without assuming bounded regressors
-    
-    concentr_XXtranspose <- sqrt(bounds$K_X / (n * delta))
-  }
-
+  # Concentration of XXt
+  concentr_XXtranspose = concentrationXXt(
+    bounded_case = options$bounded_case, bounds = bounds,
+    norms_row_X_tilde = norms_row_X_tilde, list_Xtilde_i = list_Xtilde_i,
+    n = n, delta = delta)
 
   # Rn_lin
-  
-  RnLin_without_norm_u <- RnLin(concentr_XXtranspose = concentr_XXtranspose,
-                                bounds = bounds, delta = delta)
-
-  Rnlin_u <- apply(X = matrix_u, MARGIN = 1,
-                   FUN = function(u){sqrt(sum(u^2))}) * RnLin_without_norm_u
-
+  Rnlin_u <- RnLin(concentr_XXtranspose = concentr_XXtranspose,
+                   bounds = bounds, delta = delta, matrix_u = matrix_u)
 
   # Preparing the final matrix
   result = matrix(nrow = number_u, ncol = 4)
@@ -296,7 +260,7 @@ CI.OLS <- function(
   which_regime_Exp = which((nu_nExp_u < alpha / 2) & (nu_nEdg_u >= alpha / 2))
 
   if (length(which_regime_Exp) > 0){
-    CIs.Exp.extend = OLS.CIs.Exp.extend_new(
+    CIs.Exp.extend = OLS.CIs.Exp.extend(
       n = n, alpha = alpha, a = a, K_X = bounds$K_X, delta = delta,
       nu_nExp = nu_nExp_u[which_regime_Exp],
       nuApprox_u = nuApprox_u[which_regime_Exp],
@@ -315,7 +279,7 @@ CI.OLS <- function(
   # Implies automatically nu_nExp_u < alpha / 2 as well.
 
   if (length(which_regime_Edg) > 0){
-    CIs.Edg.extend = OLS.CIs.Edg.extend_new(
+    CIs.Edg.extend = OLS.CIs.Edg.extend(
       n = n, alpha = alpha, a = a, K_X = bounds$K_X, delta = delta,
       nu_nEdg = nu_nEdg_u[which_regime_Edg],
       nuApprox_u = nuApprox_u[which_regime_Edg],
@@ -335,7 +299,7 @@ CI.OLS <- function(
                bounds = bounds) )
 }
 
-OLS.CIs.Exp.extend_new <- function(
+OLS.CIs.Exp.extend <- function(
     n, alpha, a, K_X, delta,
     nu_nExp, nuApprox_u, bound_Voracle)
 {
@@ -349,7 +313,7 @@ OLS.CIs.Exp.extend_new <- function(
   return(result)
 }
 
-OLS.CIs.Edg.extend_new <- function(
+OLS.CIs.Edg.extend <- function(
     n, alpha, a, K_X, delta,
     nu_nEdg, nuApprox_u, bound_Voracle)
 {
@@ -374,16 +338,19 @@ OLS.Nu_nExp <- function(alpha, omega, a, K_xi, n)
 }
 
 
-RnLin <- function(concentr_XXtranspose, bounds, delta){
-  
-  cc <- concentr_XXtranspose
-  
-  RnLin_without_norm_u <- 
-    sqrt(2) * cc / 
-  ((1 - cc) * sqrt(bounds$lambda_m)) *
-  (bounds$K_eps / delta)^(1/4)
+RnLin <- function(concentr_XXtranspose, bounds, delta, matrix_u){
 
-  return(RnLin_without_norm_u)
+  cc <- concentr_XXtranspose
+
+  RnLin_without_norm_u <-
+    sqrt(2) * cc /
+    ((1 - cc) * sqrt(bounds$lambda_m)) *
+    (bounds$K_eps / delta)^(1/4)
+
+  Rnlin_u <- apply(X = matrix_u, MARGIN = 1,
+                   FUN = function(u){sqrt(sum(u^2))}) * RnLin_without_norm_u
+
+  return(Rnlin_u)
 }
 
 
@@ -397,7 +364,7 @@ RnVar <- function(
   cc <- concentr_XXtranspose
   lambda_m <- bounds$lambda_m
   K_eps <- bounds$K_eps
-  
+
   part1 = (2 / (n * lambda_m^3)) *
     (cc / (1 - cc) + 1)^2 *
     sqrt(K_eps / delta) *
@@ -414,6 +381,50 @@ RnVar <- function(
   part4 = 2 / lambda_m * (cc / (1 - cc)) *
     base::norm(x = n^(-1) * crossprod(X * residuals) %*% inverse_XXtbar,
                type = "2")
-  
+
   return(part1 + part2 + part3 + part4)
 }
+
+
+
+concentrationXXt <- function(bounded_case, bounds,
+                             norms_row_X_tilde, list_Xtilde_i,
+                             n, delta)
+{
+  if (bounded_case){
+
+    # Bound on C
+    if (is.null(bounds$C)){
+      bounds$C = max(norms_row_X_tilde^2)
+    }
+
+    # Plug-in de la borne B (A = X_i tilde X_i tilde transpose)
+    list_A_i = purrr::map(1:n,
+                          ~ matrix(list_Xtilde_i[[.x]]) %*%
+                            t(matrix(list_Xtilde_i[[.x]])))
+
+    # connu theoriquement par definition des X_i tilde
+    d = ncol(X)
+    expectation_A = diag(x = 1, nrow = d, ncol = d)
+
+    # Liste des (A - E(A))(A - E(A))
+    list_A_mEA_sq = purrr::map(1:n,
+                               ~ (list_A_i[[.x]] - expectation_A) %*%
+                                 (list_A_i[[.x]] - expectation_A))
+
+    B_before_norm = purrr::reduce(list_A_mEA_sq, `+`, .init = matrix(0, ncol = d, nrow = d)) / n
+    B = base::norm(x = B_before_norm, type = "2")
+
+    concentr_XXtranspose = sqrt(2 * B * log(2 * d / delta) / n) +
+      4 * C * log(2 * d / delta) / (3*n)
+
+  } else {
+
+    # Concentration of XX transpose without assuming bounded regressors
+
+    concentr_XXtranspose <- sqrt(bounds$K_X / (n * delta))
+  }
+
+  return (concentr_XXtranspose)
+}
+
