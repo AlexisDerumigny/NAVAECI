@@ -10,8 +10,8 @@ CI.OLS(
   alpha = 0.05,
   omega = NULL,
   a = NULL,
-  C = NULL,
-  bounds = list(lambda_m = NULL, K_X = NULL, K_eps = NULL, K_xi = NULL),
+  bounds = list(lambda_m = NULL, K_reg = NULL, K_eps = NULL, K_xi = NULL, C = NULL, B =
+    NULL, K_reg = NULL),
   setup = list(continuity = FALSE, no_skewness = FALSE),
   regularity = list(C0 = 1, p = 2),
   eps = 0.1,
@@ -33,10 +33,16 @@ CI.OLS(
 
 \item{bounds}{list of bounds for the DGP.
 It can contain the following items: \itemize{
-   \item lambda_m
-   \item K_X
-   \item K_eps
-   \item K_xi, K3_xi, lambda3_xi, K3tilde_xi
+   \item \code{lambda_m}
+   \item \code{K_eps}
+   \item \code{K_xi}
+   \item \code{K3_xi}
+   \item \code{lambda3_xi}
+   \item \code{K3tilde_xi}
+   \item \code{B}, \code{C} Bounds for the concentration of || Xi tilde %*% Xi tilde'||
+   \item \code{K_reg} Bound on
+   \eqn{ E[ || vec( \widetilde{X}\widetilde{X}'- \mathbb{I}_p ) ||^2 ] }
+   Defined in Assumption 3.2 (ii).
 }
 The bounds that are not given are replaced by plug-ins.
 For K3_xi, lambda3_xi and K3tilde_xi, the bounds are obtained
@@ -73,19 +79,19 @@ Y = 3 + 8 * X1 + true_eps
 X = cbind(X1)
 
 myCI <- CI.OLS(Y, X, alpha = 0.05, omega = 0.2, a = 2,
-  bounds = list(lambda_m = 1, K_X = 5, K_eps = 5, K_xi = 10),
+  bounds = list(lambda_m = 1, K_reg = 5, K_eps = 5, K_xi = 10),
   setup = list(continuity = FALSE, no_skewness = FALSE) )
 
 print(myCI)
 
 myCI <- CI.OLS(Y, X, alpha = 0.05, omega = 0.2, a = 2,
-  bounds = list(lambda_m = 1, K_X = 5, K_eps = 5, K_xi = 20),
+  bounds = list(lambda_m = 1, K_reg = 5, K_eps = 5, K_xi = 20),
   setup = list(continuity = TRUE, no_skewness = TRUE) )
 
 print(myCI)
 
 myCI <- CI.OLS(Y, X, alpha = 0.01, omega = 0.2, a = 2,
-  bounds = list(lambda_m = 1, K_X = 5, K_eps = 5, K_xi = 10),
+  bounds = list(lambda_m = 1, K_reg = 5, K_eps = 5, K_xi = 10),
   setup = list(continuity = TRUE, no_skewness = TRUE) )
 
 print(myCI)

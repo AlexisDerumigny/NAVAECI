@@ -89,6 +89,8 @@ CI.OLS <- function(
                    bounded_case = FALSE),
     matrix_u = diag(NCOL(X)+1) )
 {
+  # 1- Checking the validity of inputs ==================================
+
   # Force X to be a matrix, even if there is only one variable
   # Same for matrix_u
   if(NCOL(X) == 1) {X <- matrix(X, ncol = 1)}
@@ -109,6 +111,9 @@ CI.OLS <- function(
   if (any(unlist(lapply(1:ncol(X), FUN = function(i) {length(unique(X[,i])) == 1})))){
     stop("X must not contain any constant columns.")
   }
+
+
+  # 2- Computing fundamental quantities that will be useful later ========================
 
   number_u <- nrow(matrix_u)
   n <- nrow(X)
@@ -144,6 +149,9 @@ CI.OLS <- function(
   Vhat_u = apply(X = matrix_u, MARGIN = 1,
                  FUN = function(u){t(u) %*% Vhat %*% u})
 
+
+  # 3- Completing the environment by computing plug-ins for missing bounds ===================
+
   # Choice of omega, a, and bounds (if they were not given)
   env <- environment()
   OLS.updateTuningParameters(env = env)
@@ -151,6 +159,9 @@ CI.OLS <- function(
 
   # Computation of delta
   delta = alpha * omega / 2
+
+
+  # 4- Computing concentration, Rlin, Rnvar ==================================================
 
   # Concentration of XXt
   concentr_XXtranspose = concentrationXXt(
@@ -161,15 +172,15 @@ CI.OLS <- function(
   Rnlin_u <- RnLin(concentr_XXtranspose = concentr_XXtranspose,
                    bounds = bounds, delta = delta, matrix_u = matrix_u)
 
+  RnVar_u <- RnVar(
+    delta = delta, n = n, norms_row_X = norms_row_X,
+    residuals = reg$residuals,
+    bounds = bounds,
+    concentr_XXtranspose = concentr_XXtranspose,
+    X = X, inverse_XXtbar = inverse_XXtbar, matrix_u = matrix_u)
 
-  # Preparing the final matrix
-  result = matrix(nrow = number_u, ncol = 4)
-  colnames(result) <- c("lower", "upper", "regime", "estimate")
-  rownames(result) <- colnames(X)
-  result = as.data.frame(result)
 
-  # u' OLS estimate (temporary, for check)
-  result[,4] = matrix_u %*% matrix(betahat, ncol = 1)
+  # 5- Computing asymptotic CIs ==============================================================
 
   # Additional part (at least for the simulations) to return a list with also
   # the plug-in bounds (to have an idea)
@@ -181,6 +192,17 @@ CI.OLS <- function(
   result_asymp[,1] = result$estimate - CIs.Asymp.extend
   result_asymp[,2] = result$estimate + CIs.Asymp.extend
 
+  # 6- Preparing the final matrix ============================================================
+  result = matrix(nrow = number_u, ncol = 4)
+  colnames(result) <- c("lower", "upper", "regime", "estimate")
+  rownames(result) <- colnames(X)
+  result = as.data.frame(result)
+
+  # u' OLS estimate (temporary, for check)
+  result[,4] = matrix_u %*% matrix(betahat, ncol = 1)
+
+  # 1st regime: R1 =======================================================================
+
   # First condition (independent of u) for returning \Rb
   if (concentr_XXtranspose >= 1){
     result[,1] = -Inf
@@ -191,6 +213,9 @@ CI.OLS <- function(
                  asymp = result_asymp,
                  bounds = bounds) )
   }
+
+
+  # 2nd regime: R2 =======================================================================
 
   # Second condition for returning \Rb
   nu_nExp_u = OLS.Nu_nExp(alpha = alpha, omega = omega,
@@ -211,7 +236,9 @@ CI.OLS <- function(
     }
   }
 
-  setup$iid = TRUE # Always in the iid framework
+  # Preparing for 3rd and 4th regime ==========================================
+
+  setup$iid = TRUE # we are always in the iid framework
 
   if (!is.null(bounds$K_xi)){
     # K_xi is provided => K_xi and delta_nE are uniform across vectors u
@@ -241,20 +268,13 @@ CI.OLS <- function(
 
   # Control u' oracle variance u
 
-  bound_Voracle <-
-    Vhat_u +
-    apply(X = matrix_u, MARGIN = 1,
-          FUN = function(u){sum(u^2)}) *
-    RnVar(
-      delta = delta, n = n, norms_row_X = norms_row_X,
-      residuals = reg$residuals,
-      bounds = bounds,
-      concentr_XXtranspose = concentr_XXtranspose,
-      X = X, inverse_XXtbar = inverse_XXtbar)
+  bound_Voracle <- Vhat_u + RnVar_u
 
   nuApprox_u = Rnlin_u / sqrt(bound_Voracle)
 
-  # Final part: computation of the confidence intervals
+
+  # 3rd regime: Exp =================================================================
+
   which_regime_Exp = which((nu_nExp_u < alpha / 2) & (nu_nEdg_u >= alpha / 2))
 
   if (length(which_regime_Exp) > 0){
@@ -272,6 +292,9 @@ CI.OLS <- function(
 
     result[which_regime_Exp, 3] = "Exp"
   }
+
+
+  # 4th regime: Edg ==============================================================
 
   which_regime_Edg = which(nu_nEdg_u < alpha / 2)
   # Implies automatically nu_nExp_u < alpha / 2 as well.
@@ -356,7 +379,7 @@ RnVar <- function(
     delta, n, norms_row_X, residuals,
     bounds,
     concentr_XXtranspose,
-    X, inverse_XXtbar)
+    X, inverse_XXtbar, matrix_u)
 {
 
   cc <- concentr_XXtranspose
@@ -380,7 +403,11 @@ RnVar <- function(
     base::norm(x = n^(-1) * crossprod(X * residuals) %*% inverse_XXtbar,
                type = "2")
 
-  return(part1 + part2 + part3 + part4)
+  result = apply(X = matrix_u, MARGIN = 1,
+                 FUN = function(u){sum(u^2)}) *
+    (part1 + part2 + part3 + part4)
+
+  return(result)
 }
 
 
