@@ -15,7 +15,7 @@ CI.OLS(
   setup = list(continuity = FALSE, no_skewness = FALSE),
   regularity = list(C0 = 1, p = 2),
   eps = 0.1,
-  options = list(center = TRUE, scale = FALSE, bounded_case = FALSE),
+  options = list(center = TRUE, bounded_case = FALSE),
   matrix_u = diag(NCOL(X) + 1)
 )
 }
