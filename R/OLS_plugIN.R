@@ -15,7 +15,7 @@ OLS.updateBounds <- function(env)
     env$bounds$lambda_m <- env$minvpXXtbar
   }
 
-  if (is.null(env$bounds$K_X)){
+  if (is.null(env$bounds$K_reg)){
 
     p <- ncol(env$X)
 
@@ -27,7 +27,7 @@ OLS.updateBounds <- function(env)
       }
     )
 
-    env$bounds$K_X <- mean(veca_To_mean_over_obs_i_for_KX)
+    env$bounds$K_reg <- mean(veca_To_mean_over_obs_i_for_KX)
   }
 
   if (is.null(env$bounds$K_eps)){
@@ -93,7 +93,7 @@ OLS.updateBounds <- function(env)
                                ~ (list_A_i[[.x]] - expectation_A) %*%
                                  (list_A_i[[.x]] - expectation_A))
 
-    B_before_norm = purrr::reduce(list_A_mEA_sq, `+`, .init = matrix(0, ncol = d, nrow = d)) / n
+    B_before_norm = purrr::reduce(list_A_mEA_sq, `+`, .init = matrix(0, ncol = d, nrow = d)) / env$n
     env$bounds$B = base::norm(x = B_before_norm, type = "2")
   }
 

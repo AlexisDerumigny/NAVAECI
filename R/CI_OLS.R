@@ -9,13 +9,15 @@
 #' @param bounds list of bounds for the DGP.
 #' It can contain the following items: \itemize{
 #'    \item \code{lambda_m}
-#'    \item \code{K_X}
 #'    \item \code{K_eps}
 #'    \item \code{K_xi}
 #'    \item \code{K3_xi}
 #'    \item \code{lambda3_xi}
 #'    \item \code{K3tilde_xi}
 #'    \item \code{B}, \code{C} Bounds for the concentration of || Xi tilde %*% Xi tilde'||
+#'    \item \code{K_reg} Bound on
+#'    \eqn{ E[ || vec( \widetilde{X}\widetilde{X}'- \mathbb{I}_p ) ||^2 ] }
+#'    Defined in Assumption 3.2 (ii).
 #' }
 #' The bounds that are not given are replaced by plug-ins.
 #' For K3_xi, lambda3_xi and K3tilde_xi, the bounds are obtained
@@ -23,7 +25,7 @@
 #'
 #' #
 #' # TODO
-#' # voir pour harmoniser nom R avec notation papier: par exemple K_X, K_reg
+#' # voir pour harmoniser nom R avec notation papier: par exemple K_reg, K_reg
 #' #
 #'
 #' @param matrix_u each row of this matrix is understood as a new vector u
@@ -53,19 +55,19 @@
 #' X = cbind(X1)
 #'
 #' myCI <- CI.OLS(Y, X, alpha = 0.05, omega = 0.2, a = 2,
-#'   bounds = list(lambda_m = 1, K_X = 5, K_eps = 5, K_xi = 10),
+#'   bounds = list(lambda_m = 1, K_reg = 5, K_eps = 5, K_xi = 10),
 #'   setup = list(continuity = FALSE, no_skewness = FALSE) )
 #'
 #' print(myCI)
 #'
 #' myCI <- CI.OLS(Y, X, alpha = 0.05, omega = 0.2, a = 2,
-#'   bounds = list(lambda_m = 1, K_X = 5, K_eps = 5, K_xi = 20),
+#'   bounds = list(lambda_m = 1, K_reg = 5, K_eps = 5, K_xi = 20),
 #'   setup = list(continuity = TRUE, no_skewness = TRUE) )
 #'
 #' print(myCI)
 #'
 #' myCI <- CI.OLS(Y, X, alpha = 0.01, omega = 0.2, a = 2,
-#'   bounds = list(lambda_m = 1, K_X = 5, K_eps = 5, K_xi = 10),
+#'   bounds = list(lambda_m = 1, K_reg = 5, K_eps = 5, K_xi = 10),
 #'   setup = list(continuity = TRUE, no_skewness = TRUE) )
 #'
 #' print(myCI)
@@ -77,10 +79,12 @@ CI.OLS <- function(
     alpha = 0.05,
     omega = NULL, a = NULL,
     bounds = list(lambda_m = NULL,
-                  K_X = NULL,
+                  K_reg = NULL,
                   K_eps = NULL,
                   K_xi = NULL,
-                  C = NULL),
+                  C = NULL,
+                  B = NULL,
+                  K_reg = NULL),
     setup = list(continuity = FALSE, no_skewness = FALSE),
     regularity = list(C0 = 1,
                       p = 2),
@@ -153,7 +157,6 @@ CI.OLS <- function(
   # Computation of delta
   delta = alpha * omega / 2
 
-
   # Concentration of XXt
   concentr_XXtranspose = concentrationXXt(
     bounded_case = options$bounded_case, bounds = bounds,
@@ -162,6 +165,7 @@ CI.OLS <- function(
   # Rn_lin
   Rnlin_u <- RnLin(concentr_XXtranspose = concentr_XXtranspose,
                    bounds = bounds, delta = delta, matrix_u = matrix_u)
+
 
   # Preparing the final matrix
   result = matrix(nrow = number_u, ncol = 4)
@@ -260,7 +264,7 @@ CI.OLS <- function(
 
   if (length(which_regime_Exp) > 0){
     CIs.Exp.extend = OLS.CIs.Exp.extend(
-      n = n, alpha = alpha, a = a, K_X = bounds$K_X, delta = delta,
+      n = n, alpha = alpha, a = a, K_reg = bounds$K_reg, delta = delta,
       nu_nExp = nu_nExp_u[which_regime_Exp],
       nuApprox_u = nuApprox_u[which_regime_Exp],
       bound_Voracle = bound_Voracle[which_regime_Exp])
@@ -279,7 +283,7 @@ CI.OLS <- function(
 
   if (length(which_regime_Edg) > 0){
     CIs.Edg.extend = OLS.CIs.Edg.extend(
-      n = n, alpha = alpha, a = a, K_X = bounds$K_X, delta = delta,
+      n = n, alpha = alpha, a = a, K_reg = bounds$K_reg, delta = delta,
       nu_nEdg = nu_nEdg_u[which_regime_Edg],
       nuApprox_u = nuApprox_u[which_regime_Edg],
       bound_Voracle = bound_Voracle[which_regime_Edg])
@@ -299,7 +303,7 @@ CI.OLS <- function(
 }
 
 OLS.CIs.Exp.extend <- function(
-    n, alpha, a, K_X, delta,
+    n, alpha, a, K_reg, delta,
     nu_nExp, nuApprox_u, bound_Voracle)
 {
 
@@ -313,7 +317,7 @@ OLS.CIs.Exp.extend <- function(
 }
 
 OLS.CIs.Edg.extend <- function(
-    n, alpha, a, K_X, delta,
+    n, alpha, a, K_reg, delta,
     nu_nEdg, nuApprox_u, bound_Voracle)
 {
 
@@ -397,7 +401,7 @@ concentrationXXt <- function(bounded_case, bounds, n, d, delta)
   } else {
     # Concentration of XX transpose without assuming bounded regressors
 
-    concentr_XXtranspose <- sqrt(bounds$K_X / (n * delta))
+    concentr_XXtranspose <- sqrt(bounds$K_reg / (n * delta))
   }
 
   return (concentr_XXtranspose)
