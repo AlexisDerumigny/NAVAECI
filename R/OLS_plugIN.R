@@ -35,13 +35,15 @@ OLS.updateBounds <- function(env)
   }
 
   if (is.null(env$bounds$K_xi)){
-    xi_u_i <- purrr::reduce( (purrr::map(1:env$n,
-                                         Compute_xi_u_for_one_obs_i,
-                                         X = env$X,
-                                         inverse_XXtbar = env$inverse_XXtbar,
-                                         matrix_u = env$matrix_u,
-                                         residuals = env$reg$residuals)
-    ), cbind)
+    xi_u_i <- do.call(
+      what = cbind,
+      args = lapply(X = 1:env$n,
+                    FUN = Compute_xi_u_for_one_obs_i,
+                    dataX = env$X,
+                    inverse_XXtbar = env$inverse_XXtbar,
+                    matrix_u = env$matrix_u,
+                    residuals = env$reg$residuals) )
+
     mean_xi4_u <- rowMeans(xi_u_i^4)
     mean_xi2_u <- rowMeans(xi_u_i^2)
     empirical_kurtosis_xi_u <- mean_xi4_u / mean_xi2_u^2
@@ -111,9 +113,9 @@ OLS.updateBounds <- function(env)
 #' @noRd
 #'
 Compute_xi_u_for_one_obs_i <- function(index_obs_i,
-                                       X, inverse_XXtbar, matrix_u, residuals){
+                                       dataX, inverse_XXtbar, matrix_u, residuals){
   return( matrix_u %*%
             (inverse_XXtbar %*%
-               matrix(X[index_obs_i,], ncol = 1) * residuals[[index_obs_i]]) )
+               matrix(dataX[index_obs_i,], ncol = 1) * residuals[[index_obs_i]]) )
 }
 
