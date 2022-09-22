@@ -141,6 +141,7 @@ CI.OLS <- function(
   # Regression
   reg = stats::lm(Y ~ X - 1)
   betahat = reg$coefficients
+  OLSestimate_u = matrix_u %*% matrix(betahat, ncol = 1)  # u' OLS estimate
 
   # Computation of Vhat
   Vhat = n * inverse_XXt %*% (crossprod(X * reg$residuals)) %*% inverse_XXt
@@ -187,8 +188,8 @@ CI.OLS <- function(
   colnames(result_asymp) = c("lower", "upper")
   # rownames(result_asymp) = c("intercept", colnames(X))
   CIs.Asymp.extend = (stats::qnorm(1 - alpha/2) / sqrt(n)) * sqrt(Vhat_u)
-  result_asymp[,1] = matrix_u %*% matrix(betahat, ncol = 1) - CIs.Asymp.extend
-  result_asymp[,2] = matrix_u %*% matrix(betahat, ncol = 1) + CIs.Asymp.extend
+  result_asymp[,1] = OLSestimate_u - CIs.Asymp.extend
+  result_asymp[,2] = OLSestimate_u + CIs.Asymp.extend
 
   # 6- Preparing the final matrix ============================================================
   result = matrix(nrow = number_u, ncol = 4)
@@ -197,7 +198,7 @@ CI.OLS <- function(
   result = as.data.frame(result)
 
   # u' OLS estimate (temporary, for check)
-  result[,4] = matrix_u %*% matrix(betahat, ncol = 1)
+  result[,4] = OLSestimate_u
 
   # 1st regime: R1 =======================================================================
 
@@ -219,7 +220,7 @@ CI.OLS <- function(
   nu_nExp_u = OLS.Nu_nExp(alpha = alpha, omega = omega,
                           a = a, K_xi = bounds$K_xi_u, n = n)
 
-  which_regime_R <- which((nu_nExp_u >= alpha / 2))
+  which_regime_R <- which(nu_nExp_u >= alpha / 2)
 
   if (length(which_regime_R) > 0){
 
@@ -282,12 +283,8 @@ CI.OLS <- function(
       nuApprox_u = nuApprox_u[which_regime_Exp],
       bound_Voracle = bound_Voracle[which_regime_Exp])
 
-    result[which_regime_Exp, 1] =
-      matrix_u[which_regime_Exp, ] %*% matrix(betahat, ncol = 1) - CIs.Exp.extend
-
-    result[which_regime_Exp, 2] =
-      matrix_u[which_regime_Exp, ] %*% matrix(betahat, ncol = 1) + CIs.Exp.extend
-
+    result[which_regime_Exp, 1] = OLSestimate_u[which_regime_Exp] - CIs.Exp.extend
+    result[which_regime_Exp, 2] = OLSestimate_u[which_regime_Exp] + CIs.Exp.extend
     result[which_regime_Exp, 3] = "Exp"
   }
 
@@ -304,12 +301,8 @@ CI.OLS <- function(
       nuApprox_u = nuApprox_u[which_regime_Edg],
       bound_Voracle = bound_Voracle[which_regime_Edg])
 
-    result[which_regime_Edg, 1] =
-      matrix_u[which_regime_Edg, ] %*% matrix(betahat, ncol = 1) - CIs.Edg.extend
-
-    result[which_regime_Edg, 2] =
-      matrix_u[which_regime_Edg, ] %*% matrix(betahat, ncol = 1) + CIs.Edg.extend
-
+    result[which_regime_Edg, 1] = OLSestimate_u[which_regime_Edg] - CIs.Edg.extend
+    result[which_regime_Edg, 2] = OLSestimate_u[which_regime_Edg] + CIs.Edg.extend
     result[which_regime_Edg, 3] = "Edg"
   }
 
