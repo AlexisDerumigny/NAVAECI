@@ -10,7 +10,7 @@ CI.OLS(
   alpha = 0.05,
   omega = NULL,
   a = NULL,
-  bounds = list(lambda_m = NULL, K_reg = NULL, K_eps = NULL, K_xi = NULL, C = NULL, B =
+  bounds = list(lambda_m = NULL, K_reg = 9, K_eps = NULL, K_xi = NULL, C = NULL, B =
     NULL),
   setup = list(continuity = FALSE, no_skewness = FALSE),
   regularity = list(C0 = 1, p = 2),

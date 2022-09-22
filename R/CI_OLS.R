@@ -74,7 +74,7 @@ CI.OLS <- function(
     alpha = 0.05,
     omega = NULL, a = NULL,
     bounds = list(lambda_m = NULL,
-                  K_reg = NULL,
+                  K_reg = 9,
                   K_eps = NULL,
                   K_xi = NULL,
                   C = NULL,
