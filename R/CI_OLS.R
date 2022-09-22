@@ -91,7 +91,7 @@ CI.OLS <- function(
 
   # Force X to be a matrix, even if there is only one variable
   # Same for matrix_u
-  if(NCOL(X) == 1) {X <- matrix(X, ncol = 1)}
+  if(is.vector(X)) {X <- matrix(X, ncol = 1)}
   if(NCOL(matrix_u) == 1) {matrix_u <- matrix(matrix_u, ncol = 1)}
 
   if(!is.vector(Y)) {
@@ -119,6 +119,7 @@ CI.OLS <- function(
   # Add a column of ones and take the empirically recentered X
   X <- cbind(matrix(1, nrow = n, ncol = 1),
              scale(X, center = options$center, scale = FALSE) )
+  colnames(X)[1] <- "intercept"
 
   # Estimation of crossproducts and other useful matrices
   XXt <- crossprod(X)
@@ -186,7 +187,7 @@ CI.OLS <- function(
   # the usual asymptotic CIs
   result_asymp = matrix(ncol = 2, nrow = number_u)
   colnames(result_asymp) = c("lower", "upper")
-  # rownames(result_asymp) = c("intercept", colnames(X))
+  rownames(result_asymp) = colnames(X)
   CIs.Asymp.extend = (stats::qnorm(1 - alpha/2) / sqrt(n)) * sqrt(Vhat_u)
   result_asymp[,1] = OLSestimate_u - CIs.Asymp.extend
   result_asymp[,2] = OLSestimate_u + CIs.Asymp.extend
@@ -194,7 +195,7 @@ CI.OLS <- function(
   # 6- Preparing the final matrix ============================================================
   result = matrix(nrow = number_u, ncol = 4)
   colnames(result) <- c("lower", "upper", "regime", "estimate")
-  # rownames(result) <- c("intercept", colnames(X))
+  rownames(result) <- colnames(X)
   result = as.data.frame(result)
 
   # u' OLS estimate (temporary, for check)

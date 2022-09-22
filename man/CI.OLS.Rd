@@ -11,7 +11,7 @@ CI.OLS(
   omega = NULL,
   a = NULL,
   bounds = list(lambda_m = NULL, K_reg = NULL, K_eps = NULL, K_xi = NULL, C = NULL, B =
-    NULL, K_reg = NULL),
+    NULL),
   setup = list(continuity = FALSE, no_skewness = FALSE),
   regularity = list(C0 = 1, p = 2),
   eps = 0.1,
