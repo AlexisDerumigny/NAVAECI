@@ -119,7 +119,12 @@ CI.OLS <- function(
   # Add a column of ones and take the empirically recentered X
   X <- cbind(matrix(1, nrow = n, ncol = 1),
              scale(X, center = options$center, scale = FALSE) )
-  colnames(X)[1] <- "intercept"
+  if (!is.null(colnames(X))){
+    colnames(X)[1] <- "intercept"
+  } else {
+    colnames(X) <- c("intercept", paste0("X", 1:(ncol(X)-1)))
+  }
+
 
   # Estimation of crossproducts and other useful matrices
   XXt <- crossprod(X)
