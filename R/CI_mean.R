@@ -93,7 +93,7 @@ Navae_ci_mean <- function(
   
   n <- length(xi)
   xi_bar <- mean(xi)
-  sigma_hat <- sqrt(var(xi))
+  sigma_hat <- sqrt(stats::var(xi))
 
   if (is.null(a)) {b_n <- n^(-1/5); a <- 1 + b_n}
   
@@ -125,16 +125,16 @@ Navae_ci_mean <- function(
   nu_n_var <- exp(-n*(1 - 1/a)^2 / (2*bound_K))
   
   arg_modif_quant <- 1 - alpha/2 + delta_n + nu_n_var/2
-  
-  I_R_regime <- arg_modif_quant >= pnorm(sqrt(n / a))
-  
+
+  I_R_regime <- arg_modif_quant >= stats::pnorm(sqrt(n / a))
+
   if (I_R_regime) {
     
     return(c(-Inf, Inf))
     
   } else {
-    
-    q <- qnorm(arg_modif_quant)
+
+    q <- stats::qnorm(arg_modif_quant)
     C_n <- 1 / sqrt(1/a - (1/n) * q^2)
     half_length <- sigma_hat/sqrt(n) * C_n * q
     
