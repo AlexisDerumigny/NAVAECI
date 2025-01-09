@@ -4,11 +4,11 @@
 #' @param data vector of univariate observations
 #' 
 #' @param alpha 1 - level of confidence of the CI.
-#' By default, alpha is set to 0.05, yielding a 95% CI.
-#' 
+#' By default, alpha is set to 0.05, yielding a 95\% CI.
+#'
 #' @param a the free parameter \eqn{a} of the interval.
 #' If the argument is not provided, the following default choice is made
-#' a = 1 + \eqn{b_n} with \eq{b_n = n^{-1/5}}.
+#' a = 1 + \eqn{b_n} with \eqn{b_n = n^{-1/5}}.
 #' Such a choice satisfies the conditions on the sequence of free parameters
 #' for the CI to be asymptotically exact pointwise and uniformly over the set
 #' of distributions with a bounded kurtosis.
@@ -17,16 +17,16 @@
 #' observations that are assumed to be i.i.d.
 #' The choice of 9 covers most "usual" distribution.
 #' Otherwise, if the argument is not provided, the value used is the plug-in
-#' counterpart \widehat{K}, that is, the empirical kurtosis of the observations.
-#' 
-#' @param param_BE_EE parameters to compute the BE or EE bound \delta_n used
+#' counterpart \eqn{\widehat{K}}, that is, the empirical kurtosis of the observations.
+#'
+#' @param param_BE_EE parameters to compute the BE or EE bound \eqn{\delta_n} used
 #' to construct the confidence interval.
 #' If \code{param_BE_EE} is exactly equal to \code{"BE"}, then the bound used is 
 #' the best up-to-date BE bound from Shevtsova (2013) combined with a convexity 
 #' inequality.
 #' Otherwise, \code{param_BE_EE} is a list of four objects:
-#' 1- \code{choice}: 
-#' If equal to "EE", the bound used is Derumigny et al. (2023)'s bound
+#' 1- \code{choice}:
+#' If equal to \code{"EE"}, the bound used is Derumigny et al. (2023)'s bound
 #' computed using the parameters specified by the rest of \code{param_BE_EE},
 #' namely:
 #' 2- \code{setup}: itself a logical vector of size 3,
@@ -45,8 +45,8 @@
 #' @return this function returns a numerical vector of size 2: the first element
 #' is the lower end of the CI, the second the upper end.
 #' In the R regime, the CI is \code{(-Inf, Inf)}.
-#' 
-#' @example 
+#'
+#' @examples
 #' n = 1000
 #' data = rexp(n, 1)
 #' Navae_ci_mean(data, bound_K = 9)
