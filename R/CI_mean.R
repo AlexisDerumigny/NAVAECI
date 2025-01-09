@@ -92,7 +92,9 @@ Navae_ci_mean <- function(
   xi <- data; # shortcut and to follow the notation of the paper
   
   n <- length(xi)
-  xi_bar <- mean(xi); sigma_hat <- sqrt(var(xi))
+  xi_bar <- mean(xi)
+  sigma_hat <- sqrt(var(xi))
+
   if (is.null(a)) {b_n <- n^(-1/5); a <- 1 + b_n}
   
   if (is.null(bound_K)) {
