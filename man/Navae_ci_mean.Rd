@@ -90,10 +90,4 @@ Navae_ci_mean(data, bound_K = 9, alpha = 0.05)
 Navae_ci_mean(data, bound_K = 9, alpha = 0.05, a = 1 + n^(-1/3))
 Navae_ci_mean(data, bound_K = 9, alpha = 0.05, a = 1 + n^(-1/5))
 Navae_ci_mean(data, bound_K = 9, alpha = 0.05, a = 1 + n^(-0.5/5))
-
-TODO: possibly change the choice of a when not provided to select, if exist
-the best (for the resulting length of the IC) i.e. lowest a such that
-we are not in the R regime?
-But in all cases, it requires quite large sample sizes.
-
 }
