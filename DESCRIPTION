@@ -11,4 +11,4 @@ Encoding: UTF-8
 Imports: 
   BoundEdgeworth,
   expm
-RoxygenNote: 7.2.1
+RoxygenNote: 7.3.2
