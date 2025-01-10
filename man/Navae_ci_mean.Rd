@@ -102,4 +102,5 @@ Navae_ci_mean(data, bound_K = 9, alpha = 0.05)
 Navae_ci_mean(data, bound_K = 9, alpha = 0.05, a = 1 + n^(-1/3))
 Navae_ci_mean(data, bound_K = 9, alpha = 0.05, a = 1 + n^(-1/5))
 Navae_ci_mean(data, bound_K = 9, alpha = 0.05, a = 1 + n^(-0.5/5))
+
 }
