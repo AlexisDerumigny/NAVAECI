@@ -81,24 +81,25 @@ OLS.updateBounds <- function(env)
   # Bound on B
   # (used for Bernstein concentration of square matrices, applied to A = X_i tilde X_i tilde')
   if (is.null(env$bounds$B)){
-    list_A_i = purrr::map(1:env$n,
-                          ~ matrix(env$list_Xtilde_i[[.x]]) %*%
-                            t(matrix(env$list_Xtilde_i[[.x]])))
+
+    d = ncol(env$X)
 
     # By definition of X_i tilde,
     # E[A] = E[X_i tilde X_i tilde'] = identity matrix of size d
-    d = ncol(env$X)
     expectation_A = diag(d)
+    B_before_norm = 0
 
-    # List of the (A - E(A))(A - E(A))
-    list_A_mEA_sq = purrr::map(1:env$n,
-                               ~ (list_A_i[[.x]] - expectation_A) %*%
-                                 (list_A_i[[.x]] - expectation_A))
+    for (i in 1:env$n){
+      A_i = matrix(env$list_Xtilde_i[[i]]) %*%
+        t(matrix(env$list_Xtilde_i[[i]]))
 
-    B_before_norm = purrr::reduce(list_A_mEA_sq, `+`, .init = matrix(0, ncol = d, nrow = d)) / env$n
+      # Computation of (A - E(A))(A - E(A))
+      A_mEA_sq = (A_i - expectation_A) %*% (A_i - expectation_A)
+
+      B_before_norm = B_before_norm + A_mEA_sq
+    }
     env$bounds$B = base::norm(x = B_before_norm, type = "2")
   }
-
 }
 
 
