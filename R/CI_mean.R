@@ -24,19 +24,21 @@
 #' If \code{param_BE_EE} is exactly equal to \code{"BE"}, then the bound used is
 #' the best up-to-date BE bound from Shevtsova (2013) combined with a convexity
 #' inequality.
-#' Otherwise, \code{param_BE_EE} is a list of four objects:
-#' 1- \code{choice}:
-#' If equal to \code{"EE"}, the bound used is Derumigny et al. (2023)'s bound
-#' computed using the parameters specified by the rest of \code{param_BE_EE},
-#' namely:
-#' 2- \code{setup}: itself a logical vector of size 3,
-#' 3- \code{regularity}: itself a list of length up to 3,
-#' 4- \code{eps}: value between 0 and 1/3.
+#' Otherwise, \code{param_BE_EE} is a list of four objects: \itemize{
+#'   \item \code{choice}:
+#'   If equal to \code{"EE"}, the bound used is Derumigny et al. (2023)'s bound
+#'   computed using the parameters specified by the rest of \code{param_BE_EE},
+#'   namely
+#'   \item \code{setup}: itself a logical vector of size 3,
+#'   \item \code{regularity}: itself a list of length up to 3,
+#'   \item \code{eps}: value between 0 and 1/3,
+#' }
 #' as described in the arguments of the function \code{BoundEdegworth::Bound_EE1}.
 #' Together, they specify the bounds and assumptions used to compute the
 #' bound \eqn{\delta_n} from Derumigny et al. (2023).
-#' Finally, if choice is equal to \code{"best"}, the bound used is the minimum between
-#' the previous one (with \code{choice = "EE"}) and the bound \code{"BE"}.
+#'
+#' Finally, if choice is equal to \code{"best"}, the bound used is the minimum
+#' between the previous one (with \code{choice = "EE"}) and the bound \code{"BE"}.
 #'
 #' By default, following Remark 3.3 of the article, \code{"best"} is used and
 #' Derumigny et al. (2023)'s bounds is computed assuming i.i.d data and no other
@@ -45,7 +47,7 @@
 #'
 #' @return this function returns a numerical vector of size 2: the first element
 #' is the lower end of the CI, the second the upper end.
-#' In the R regime, the CI is \code{(-Inf, Inf)}.
+#' In the \eqn{\mathbb{R}} regime, the CI is \code{(-Inf, Inf)}.
 #'
 #' @examples
 #' n = 1000
