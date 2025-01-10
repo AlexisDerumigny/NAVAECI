@@ -58,10 +58,22 @@
 #' Navae_ci_mean(data, bound_K = 9, alpha = 0.2, a = 1 + n^(-0/5))
 #' Navae_ci_mean(data, bound_K = 9, alpha = 0.2)
 #' Navae_ci_mean(data, alpha = 0.2) # plug-in for K
-#' Navae_ci_mean(data, alpha = 0.1, param_BE_EE = list(choice = "best", setup = list(continuity = FALSE, iid = TRUE, no_skewness = FALSE), regularity = list(C0 = 1, p = 2), eps = 0.1))
-#' Navae_ci_mean(data, alpha = 0.1, param_BE_EE = list(choice = "best", setup = list(continuity = TRUE, iid = TRUE, no_skewness = FALSE), regularity = list(kappa = 0.99), eps = 0.1))
-#' Navae_ci_mean(data, alpha = 0.05, param_BE_EE = list(choice = "best", setup = list(continuity = FALSE, iid = TRUE, no_skewness = FALSE), regularity = list(C0 = 1, p = 2), eps = 0.1))
-#' Navae_ci_mean(data, alpha = 0.05, param_BE_EE = list(choice = "best", setup = list(continuity = TRUE, iid = TRUE, no_skewness = FALSE), regularity = list(kappa = 0.99), eps = 0.1))
+#'
+#' listParams1 = list(
+#'   choice = "best",
+#'   setup = list(continuity = FALSE, iid = TRUE, no_skewness = FALSE),
+#'   regularity = list(C0 = 1, p = 2),
+#'   eps = 0.1)
+#'
+#' listParams2 = list(
+#'   choice = "best",
+#'   setup = list(continuity = TRUE, iid = TRUE, no_skewness = FALSE),
+#'   regularity = list(kappa = 0.99), eps = 0.1)
+#'
+#' Navae_ci_mean(data, alpha = 0.1, param_BE_EE = listParams1)
+#' Navae_ci_mean(data, alpha = 0.1, param_BE_EE = listParams2)
+#' Navae_ci_mean(data, alpha = 0.05, param_BE_EE = listParams1)
+#' Navae_ci_mean(data, alpha = 0.05, param_BE_EE = listParams2)
 #'
 #' n = 100 * 10^3
 #' data = rexp(n, 1)
