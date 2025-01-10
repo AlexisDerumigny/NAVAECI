@@ -104,11 +104,16 @@ Navae_ci_mean <- function(
       regularity = list(C0 = 1, p = 2),
       eps = 0.1))
 {
-
-  stopifnot(is.vector(data, mode = "numeric"))
+  if (!is.vector(data, mode = "numeric")){
+    stop("'data' must be a numeric vector.")
+  }
   xi <- data; # shortcut and to follow the notation of the paper
-
   n <- length(xi)
+
+  if (n < 2){
+    stop("'data' must be at least of length 2.")
+  }
+
   xi_bar <- mean(xi)
   sigma_hat <- sqrt(stats::var(xi))
 
