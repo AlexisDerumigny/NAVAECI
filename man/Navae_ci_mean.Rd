@@ -11,7 +11,8 @@ Navae_ci_mean(
   a = NULL,
   bound_K = NULL,
   param_BE_EE = list(choice = "best", setup = list(continuity = FALSE, iid = TRUE,
-    no_skewness = FALSE), regularity = list(C0 = 1, p = 2), eps = 0.1)
+    no_skewness = FALSE), regularity = list(C0 = 1, p = 2), eps = 0.1),
+  na.rm = FALSE
 )
 }
 \arguments{
@@ -58,6 +59,8 @@ By default, following Remark 3.3 of the article, \code{"best"} is used and
 Derumigny et al. (2023)'s bounds is computed assuming i.i.d data and no other
 regularity assumptions (continuous or unskewed distribution) and the bound on
 kurtosis used is the one specified in the previous the argument \code{bound_K}.}
+
+\item{na.rm}{logical, should missing values in \code{data} be removed?}
 }
 \value{
 this function returns a numerical vector of size 2: the first element

@@ -45,6 +45,8 @@
 #' regularity assumptions (continuous or unskewed distribution) and the bound on
 #' kurtosis used is the one specified in the previous the argument \code{bound_K}.
 #'
+#' @param na.rm logical, should missing values in \code{data} be removed?
+#'
 #' @return this function returns a numerical vector of size 2: the first element
 #' is the lower end of the CI, the second the upper end.
 #' In the \eqn{\mathbb{R}} regime, the CI is \code{(-Inf, Inf)}.
@@ -102,12 +104,18 @@ Navae_ci_mean <- function(
       choice = "best",
       setup = list(continuity = FALSE, iid = TRUE, no_skewness = FALSE),
       regularity = list(C0 = 1, p = 2),
-      eps = 0.1))
+      eps = 0.1),
+    na.rm = FALSE)
 {
   if (!is.vector(data, mode = "numeric")){
     stop("'data' must be a numeric vector.")
   }
-  xi <- data; # shortcut and to follow the notation of the paper
+
+  if (na.rm){
+    xi <- stats::na.exclude(data)
+  } else {
+    xi <- data
+  }
   n <- length(xi)
 
   if (n < 2){
