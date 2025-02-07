@@ -1,26 +1,29 @@
 #' Compute NAVAE CI for the expectation based on empirical mean estimator
 #' and Berry-Esseen (BE) or Edgeworth Expansions (EE) bounds
 #'
-#' @param data vector of univariate observations
+#' @param data vector of univariate observations.
 #'
 #' @param alpha 1 - level of confidence of the CI.
-#' By default, alpha is set to 0.05, yielding a 95\% CI.
+#' By default, alpha is set to 0.05, yielding a 95% CI.
 #'
-#' @param a the free parameter \eqn{a} of the interval.
-#' @param power_of_n_for_b 
-#' If the argument \code{a} is not provided, the following default choice is made
+#' @param a the free parameter \eqn{a} (or \eqn{a_n}) of the interval.
+#' @param power_of_n_for_b
+#' If the argument \code{a} is not provided, the following default choice is 
+#' made for the free parameter:
 #' a_n = a = 1 + \eqn{b_n} with \eqn{b_n = n^{\code{power_of_n_for_b}}}.
-#' If \code{power_of_n_for_b} is not provided, the default choice is -2/5.
-#' 
+#' If \code{power_of_n_for_b} is not provided (default argument NULL),
+#' the default choice is \code{power_of_n_for_b} = -2/5.
 #' Such a choice satisfies the conditions on the sequence of free parameters
 #' for the CI to be asymptotically exact pointwise and uniformly over the set
-#' of distributions with a bounded kurtosis.
+#' of distributions with a bounded kurtosis. If the specified 
+#' \code{power_of_n_for_b} violates those condition, a warning is output.
 #'
 #' @param bound_K bound on the kurtosis K_4(theta) of the distribution of the
 #' observations that are assumed to be i.i.d.
-#' The choice of 9 covers most "usual" distribution.
-#' Otherwise, if the argument is not provided, the value used is the plug-in
-#' counterpart \eqn{\widehat{K}}, that is, the empirical kurtosis of the observations.
+#' The choice of 9 covers most "usual" distributions.
+#' If the argument is not provided (default argument NULL), the value used is 
+#' the plug-in counterpart \eqn{\widehat{K}}, that is, the empirical kurtosis 
+#' of the observations.
 #'
 #' @param param_BE_EE parameters to compute the BE or EE bound \eqn{\delta_n} used
 #' to construct the confidence interval.
@@ -39,8 +42,7 @@
 #' as described in the arguments of the function \code{BoundEdegworth::Bound_EE1}.
 #' Together, they specify the bounds and assumptions used to compute the
 #' bound \eqn{\delta_n} from Derumigny et al. (2023).
-#'
-#' Finally, if choice is equal to \code{"best"}, the bound used is the minimum
+#' Finally, if \code{choice} is equal to \code{"best"}, the bound used is the minimum
 #' between the previous one (with \code{choice = "EE"}) and the bound \code{"BE"}.
 #'
 #' By default, following Remark 3.3 of the article, \code{"best"} is used and
@@ -48,14 +50,20 @@
 #' regularity assumptions (continuous or unskewed distribution) and the bound on
 #' kurtosis used is the one specified in the previous the argument \code{bound_K}.
 #'
-#' @param verbose FALSE by default, if TRUE, several additional elements are reported
-#' - bound delta_n used, numerical value and either from BE or EE
-#' 
 #' @param na.rm logical, should missing values in \code{data} be removed?
 #'
-#' @return this function returns a numerical vector of size 2: the first element
-#' is the lower end of the CI, the second the upper end.
-#' In the \eqn{\mathbb{R}} regime, the CI is \code{(-Inf, Inf)}.
+#' @param verbose FALSE by default, if TRUE, several additional elements are reported
+#'
+#' @return with \code{verbose = FALSE}, it returns a numerical vector of size 2: 
+#' the first element is the lower end of the CI, the second the upper end.
+#' In the \eqn{\mathbb{R}} regime, the CI is \code{(-Inf, Inf)}; otherwise
+#' it is a numeric 2-length vector.
+#' with \code{verbose = TRUE}, a list is output with various elements:
+#' - the CI;
+#' - the classical "asymptotic" CI based on CLT (as a comparison);
+#' - the bound delta_n used: its numerical value and whether it comes from BE or EE;
+#' - the value of the argument of the modified quantile;
+#' - the minimal alpha to exit the \eqn{\mathbb{R}} regime.
 #'
 #' @examples
 #' n = 1000
@@ -115,7 +123,8 @@ Navae_ci_mean <- function(
     choice = "best",
     setup = list(continuity = FALSE, iid = TRUE, no_skewness = FALSE),
     regularity = list(C0 = 1, p = 2),
-    eps = 0.1), na.rm = FALSE, verbose = FALSE)
+    eps = 0.1), 
+  na.rm = FALSE, verbose = FALSE)
 {
   if (!is.vector(data, mode = "numeric")) {
     stop("'data' must be a numeric vector.")
@@ -198,12 +207,12 @@ Navae_ci_mean <- function(
     ci <- xi_bar + c(-1, 1) * half_length
   }
   
-  if (isTRUE(verbose)) {
+  if (verbose) {
     
-    minimal_alpha_to_exit_R_regime <- 
-      2 * (1 + delta_n + nu_n_var/2 - stats::pnorm(sqrt(n / a)))
+    minimal_alpha_to_exit_R_regime <-
+      2*(1 + delta_n + nu_n_var/2 - stats::pnorm(sqrt(n / a)))
     
-   # Comparison with usual CLT + Slutsky "asymptotic" CI
+   # Comparison with usual "asymptotic" CI (based on CLT + Slutsky)
     half_length_CLT <- sigma_hat/sqrt(n) * stats::qnorm(1 - alpha/2)
     ci_CLT <- xi_bar + c(-1, 1) * half_length_CLT
     
@@ -213,7 +222,6 @@ Navae_ci_mean <- function(
                 delta_n_from = delta_n_from,
                 arg_modif_quant = arg_modif_quant,
                 minimal_alpha_to_exit_R_regime = minimal_alpha_to_exit_R_regime))
-  
   } else {
     return(ci)
   }
