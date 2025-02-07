@@ -11,7 +11,8 @@ Navae_ci_mean(
   a = NULL,
   bound_K = NULL,
   param_BE_EE = list(choice = "best", setup = list(continuity = FALSE, iid = TRUE,
-    no_skewness = FALSE), regularity = list(C0 = 1, p = 2), eps = 0.1)
+    no_skewness = FALSE), regularity = list(C0 = 1, p = 2), eps = 0.1),
+  na.rm = FALSE
 )
 }
 \arguments{
@@ -38,29 +39,33 @@ to construct the confidence interval.
 If \code{param_BE_EE} is exactly equal to \code{"BE"}, then the bound used is
 the best up-to-date BE bound from Shevtsova (2013) combined with a convexity
 inequality.
-Otherwise, \code{param_BE_EE} is a list of four objects:
-1- \code{choice}:
-If equal to \code{"EE"}, the bound used is Derumigny et al. (2023)'s bound
-computed using the parameters specified by the rest of \code{param_BE_EE},
-namely:
-2- \code{setup}: itself a logical vector of size 3,
-3- \code{regularity}: itself a list of length up to 3,
-4- \code{eps}: value between 0 and 1/3.
+Otherwise, \code{param_BE_EE} is a list of four objects: \itemize{
+  \item \code{choice}:
+  If equal to \code{"EE"}, the bound used is Derumigny et al. (2023)'s bound
+  computed using the parameters specified by the rest of \code{param_BE_EE},
+  namely
+  \item \code{setup}: itself a logical vector of size 3,
+  \item \code{regularity}: itself a list of length up to 3,
+  \item \code{eps}: value between 0 and 1/3,
+}
 as described in the arguments of the function \code{BoundEdegworth::Bound_EE1}.
 Together, they specify the bounds and assumptions used to compute the
 bound \eqn{\delta_n} from Derumigny et al. (2023).
-Finally, if choice is equal to \code{"best"}, the bound used is the minimum between
-the previous one (with \code{choice = "EE"}) and the bound \code{"BE"}.
+
+Finally, if choice is equal to \code{"best"}, the bound used is the minimum
+between the previous one (with \code{choice = "EE"}) and the bound \code{"BE"}.
 
 By default, following Remark 3.3 of the article, \code{"best"} is used and
 Derumigny et al. (2023)'s bounds is computed assuming i.i.d data and no other
 regularity assumptions (continuous or unskewed distribution) and the bound on
 kurtosis used is the one specified in the previous the argument \code{bound_K}.}
+
+\item{na.rm}{logical, should missing values in \code{data} be removed?}
 }
 \value{
 this function returns a numerical vector of size 2: the first element
 is the lower end of the CI, the second the upper end.
-In the R regime, the CI is \code{(-Inf, Inf)}.
+In the \eqn{\mathbb{R}} regime, the CI is \code{(-Inf, Inf)}.
 }
 \description{
 Compute NAVAE CI for the expectation based on empirical mean estimator
@@ -77,10 +82,22 @@ data = rexp(n, 1)
 Navae_ci_mean(data, bound_K = 9, alpha = 0.2, a = 1 + n^(-0/5))
 Navae_ci_mean(data, bound_K = 9, alpha = 0.2)
 Navae_ci_mean(data, alpha = 0.2) # plug-in for K
-Navae_ci_mean(data, alpha = 0.1, param_BE_EE = list(choice = "best", setup = list(continuity = FALSE, iid = TRUE, no_skewness = FALSE), regularity = list(C0 = 1, p = 2), eps = 0.1))
-Navae_ci_mean(data, alpha = 0.1, param_BE_EE = list(choice = "best", setup = list(continuity = TRUE, iid = TRUE, no_skewness = FALSE), regularity = list(kappa = 0.99), eps = 0.1))
-Navae_ci_mean(data, alpha = 0.05, param_BE_EE = list(choice = "best", setup = list(continuity = FALSE, iid = TRUE, no_skewness = FALSE), regularity = list(C0 = 1, p = 2), eps = 0.1))
-Navae_ci_mean(data, alpha = 0.05, param_BE_EE = list(choice = "best", setup = list(continuity = TRUE, iid = TRUE, no_skewness = FALSE), regularity = list(kappa = 0.99), eps = 0.1))
+
+listParams1 = list(
+  choice = "best",
+  setup = list(continuity = FALSE, iid = TRUE, no_skewness = FALSE),
+  regularity = list(C0 = 1, p = 2),
+  eps = 0.1)
+
+listParams2 = list(
+  choice = "best",
+  setup = list(continuity = TRUE, iid = TRUE, no_skewness = FALSE),
+  regularity = list(kappa = 0.99), eps = 0.1)
+
+Navae_ci_mean(data, alpha = 0.1, param_BE_EE = listParams1)
+Navae_ci_mean(data, alpha = 0.1, param_BE_EE = listParams2)
+Navae_ci_mean(data, alpha = 0.05, param_BE_EE = listParams1)
+Navae_ci_mean(data, alpha = 0.05, param_BE_EE = listParams2)
 
 n = 100 * 10^3
 data = rexp(n, 1)
@@ -90,4 +107,5 @@ Navae_ci_mean(data, bound_K = 9, alpha = 0.05)
 Navae_ci_mean(data, bound_K = 9, alpha = 0.05, a = 1 + n^(-1/3))
 Navae_ci_mean(data, bound_K = 9, alpha = 0.05, a = 1 + n^(-1/5))
 Navae_ci_mean(data, bound_K = 9, alpha = 0.05, a = 1 + n^(-0.5/5))
+
 }
