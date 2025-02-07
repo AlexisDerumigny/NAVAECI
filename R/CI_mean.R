@@ -65,6 +65,7 @@
 #' - the bound delta_n used: its numerical value and whether it comes from BE or EE;
 #' - the value of the argument of the modified quantile;
 #' - the minimal alpha to exit the \eqn{\mathbb{R}} regime.
+#' - the value K used and the method
 #'
 #' @examples
 #' n = 1000
@@ -101,7 +102,7 @@
 #' Navae_ci_mean(data, alpha = 0.05, param_BE_EE = listParams1)
 #' Navae_ci_mean(data, alpha = 0.05, param_BE_EE = listParams2)
 #'
-#' n = 100 * 10^3
+#' n = 1000 * 10^3
 #' data = rexp(n, 1)
 #' Navae_ci_mean(data, bound_K = 9, alpha = 0.10)
 #' Navae_ci_mean(data, alpha = 0.10)
@@ -160,7 +161,10 @@ Navae_ci_mean <- function(
   }
 
   if (is.null(bound_K)) {
+    bound_K_method <- "plug-in"
     bound_K <- Empirical_kurtosis(xi, xi_bar, sigma_hat)
+  } else {
+    bound_K_method <- "bound"
   }
   
   delta_n_BE <- BE_bound_Shevtsova(bound_K, n)
@@ -223,7 +227,8 @@ Navae_ci_mean <- function(
                 delta_n = delta_n,
                 delta_n_from = delta_n_from,
                 arg_modif_quant = arg_modif_quant,
-                minimal_alpha_to_exit_R_regime = minimal_alpha_to_exit_R_regime))
+                minimal_alpha_to_exit_R_regime = minimal_alpha_to_exit_R_regime,
+                bound_K_method = bound_K_method, bound_K_value = bound_K))
   } else {
     return(ci)
   }
