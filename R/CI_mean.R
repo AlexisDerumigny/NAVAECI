@@ -61,6 +61,7 @@
 #' with \code{verbose = TRUE}, a list is output with various elements:
 #' - the CI;
 #' - the classical "asymptotic" CI based on CLT (as a comparison);
+#' - the regime of our CI (indicator of being in \eqn{\mathbb{R}} regime)
 #' - the bound delta_n used: its numerical value and whether it comes from BE or EE;
 #' - the value of the argument of the modified quantile;
 #' - the minimal alpha to exit the \eqn{\mathbb{R}} regime.
@@ -193,9 +194,9 @@ Navae_ci_mean <- function(
 
   arg_modif_quant <- 1 - alpha/2 + delta_n + nu_n_var/2
 
-  Indicator_R_regime <- arg_modif_quant >= stats::pnorm(sqrt(n / a))
+  indicator_R_regime <- arg_modif_quant >= stats::pnorm(sqrt(n / a))
 
-  if (Indicator_R_regime) {
+  if (indicator_R_regime) {
 
     ci <- c(-Inf, Inf)
 
@@ -217,6 +218,7 @@ Navae_ci_mean <- function(
     ci_CLT <- xi_bar + c(-1, 1) * half_length_CLT
     
     return(list(ci = ci,
+                indicator_R_regime = indicator_R_regime,
                 ci_CLT = ci_CLT,
                 delta_n = delta_n,
                 delta_n_from = delta_n_from,
