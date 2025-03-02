@@ -120,13 +120,13 @@
 # But in all cases, it requires quite large sample sizes.
 #
 Navae_ci_mean <- function(
-  data, alpha = 0.05, a = NULL, power_of_n_for_b = NULL, bound_K = NULL,
-  param_BE_EE = list(
-    choice = "best",
-    setup = list(continuity = FALSE, iid = TRUE, no_skewness = FALSE),
-    regularity = list(C0 = 1, p = 2),
-    eps = 0.1), 
-  na.rm = FALSE, verbose = FALSE)
+    data, alpha = 0.05, a = NULL, power_of_n_for_b = NULL, bound_K = NULL,
+    param_BE_EE = list(
+      choice = "best",
+      setup = list(continuity = FALSE, iid = TRUE, no_skewness = FALSE),
+      regularity = list(C0 = 1, p = 2),
+      eps = 0.1), 
+    na.rm = FALSE, verbose = FALSE)
 {
   if (!is.vector(data, mode = "numeric")) {
     stop("'data' must be a numeric vector.")
@@ -159,7 +159,7 @@ Navae_ci_mean <- function(
     b_n <- n^power_of_n_for_b
     a <- 1 + b_n
   }
-
+  
   if (is.null(bound_K)) {
     bound_K_method <- "plug-in"
     bound_K <- Empirical_kurtosis(xi, xi_bar, sigma_hat)
@@ -170,17 +170,17 @@ Navae_ci_mean <- function(
   delta_n_BE <- BE_bound_Shevtsova(bound_K, n)
   
   if (is.vector(param_BE_EE, mode = "character") && (param_BE_EE == "BE")) {
-
+    
     delta_n <- delta_n_BE; delta_n_from <- "BE"
-
+    
   } else {
-
+    
     delta_n_EE <- BoundEdgeworth::Bound_EE1(
       setup = param_BE_EE$setup,
       regularity = param_BE_EE$regularity,
       eps = param_BE_EE$eps, n = n,
       K4 = bound_K, K3 = NULL, lambda3 = NULL, K3tilde = NULL)
-
+    
     if (param_BE_EE$choice == "best") {
       if (delta_n_BE < delta_n_EE) {
         delta_n <- delta_n_BE; delta_n_from <- "BE"
@@ -193,23 +193,25 @@ Navae_ci_mean <- function(
       stop("Invalid specification of the argument 'param_BE_EE$choice'.")
     }
   }
-
+  
   nu_n_var <- exp(-n*(1 - 1/a)^2 / (2*bound_K))
-
+  
   arg_modif_quant <- 1 - alpha/2 + delta_n + nu_n_var/2
-
+  
   indicator_R_regime <- arg_modif_quant >= stats::pnorm(sqrt(n / a))
-
+  
   if (indicator_R_regime) {
-
+    
     ci <- c(-Inf, Inf)
-
+    ratio_length_wrt_CLT <- Inf
+    
   } else {
-
+    
     q <- stats::qnorm(arg_modif_quant)
     C_n <- 1 / sqrt(1/a - (1/n) * q^2)
     half_length <- sigma_hat/sqrt(n) * C_n * q
     ci <- xi_bar + c(-1, 1) * half_length
+    ratio_length_wrt_CLT <- C_n * q / stats::qnorm(1 - alpha/2)
   }
   
   if (verbose) {
@@ -217,18 +219,20 @@ Navae_ci_mean <- function(
     minimal_alpha_to_exit_R_regime <-
       2*(1 + delta_n + nu_n_var/2 - stats::pnorm(sqrt(n / a)))
     
-   # Comparison with usual "asymptotic" CI (based on CLT + Slutsky)
+    # Comparison with usual "asymptotic" CI (based on CLT + Slutsky)
     half_length_CLT <- sigma_hat/sqrt(n) * stats::qnorm(1 - alpha/2)
     ci_CLT <- xi_bar + c(-1, 1) * half_length_CLT
     
-    return(list(ci = ci,
-                indicator_R_regime = indicator_R_regime,
-                ci_CLT = ci_CLT,
-                delta_n = delta_n,
-                delta_n_from = delta_n_from,
-                arg_modif_quant = arg_modif_quant,
-                minimal_alpha_to_exit_R_regime = minimal_alpha_to_exit_R_regime,
-                bound_K_method = bound_K_method, bound_K_value = bound_K))
+      return(list(ci = ci,
+                  indicator_R_regime = indicator_R_regime,
+                  ci_CLT = ci_CLT,
+                  ratio_length_wrt_CLT = ratio_length_wrt_CLT,
+                  delta_n = delta_n,
+                  delta_n_from = delta_n_from,
+                  arg_modif_quant = arg_modif_quant,
+                  minimal_alpha_to_exit_R_regime = minimal_alpha_to_exit_R_regime,
+                  bound_K_method = bound_K_method, 
+                  bound_K_value = bound_K))
   } else {
     return(ci)
   }
