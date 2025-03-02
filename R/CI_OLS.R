@@ -69,67 +69,68 @@
 #'
 #' @export
 #'
-CI.OLS <- function(
+Navae_ci_ols <- function(
     Y, X,
-    alpha = 0.05,
-    omega = NULL, a = NULL,
+    alpha = 0.05, a = NULL, power_of_n_for_b = NULL,
+    omega = NULL,
     bounds = list(lambda_m = NULL,
                   K_reg = 9,
                   K_eps = NULL,
                   K_xi = NULL,
                   C = NULL,
                   B = NULL),
-    setup = list(continuity = FALSE, no_skewness = FALSE),
-    regularity = list(C0 = 1,
-                      p = 2),
-    eps = 0.1,
-    options = list(center = TRUE,
-                   bounded_case = FALSE),
-    matrix_u = diag(NCOL(X)+1) )
+    param_BE_EE = list(
+      choice = "best",
+      setup = list(continuity = FALSE, iid = TRUE, no_skewness = FALSE),
+      regularity = list(C0 = 1, p = 2),
+      eps = 0.1),
+    options = list(center = FALSE, bounded_case = FALSE),
+    matrix_u = diag(NCOL(X) + 1))
 {
   # 1- Checking the validity of inputs ==================================
 
   # Force X to be a matrix, even if there is only one variable
   # Same for matrix_u
-  if(is.vector(X)) {X <- matrix(X, ncol = 1)}
-  if(NCOL(matrix_u) == 1) {matrix_u <- matrix(matrix_u, ncol = 1)}
+  if (is.vector(X)) {X <- matrix(X, ncol = 1)}
+  if (NCOL(matrix_u) == 1) {matrix_u <- matrix(matrix_u, ncol = 1)}
 
-  if(!is.vector(Y)) {
+  if (!is.vector(Y)) {
     stop("Y must be a vector.")
   }
-  if( length(Y) != nrow(X) ){
+  if (length(Y) != nrow(X)) {
     stop("Y must have the same number of observations as X.")
   }
-  if (ncol(matrix_u) != ncol(X) + 1){
+  if (ncol(matrix_u) != ncol(X) + 1) {
     stop("matrix_u must have exactly one more column than X. ",
          "The first column of matrix_u is then interpreted ",
          "as the coefficient of the intercept. The other columns ",
          "of matrix_u correspond respectively to the columns of X.")
   }
-  if (any(unlist(lapply(1:ncol(X), FUN = function(i) {length(unique(X[,i])) == 1})))){
+  if (any(unlist(lapply(1:ncol(X), FUN = function(i) {length(unique(X[,i])) == 1})))) {
     stop("X must not contain any constant columns.")
   }
-
+  if ((!is.logical(options$center)) || (length(options$center) != 1)) {
+    stop("`options$center' must be either TRUE or FALSE.")
+  }
 
   # 2- Computing fundamental quantities that will be useful later ========================
 
   number_u <- nrow(matrix_u)
   n <- nrow(X)
 
-  # Add a column of ones and take the empirically recentered X
+  # Add a column of ones and take the empirically recentered X if option center set to TRUE.
   X <- cbind(matrix(1, nrow = n, ncol = 1),
-             scale(X, center = options$center, scale = FALSE) )
-  if (!is.null(colnames(X))){
+             scale(X, center = options$center, scale = FALSE))
+  if (!is.null(colnames(X))) {
     colnames(X)[1] <- "intercept"
   } else {
-    colnames(X) <- c("intercept", paste0("X", 1:(ncol(X)-1)))
+    colnames(X) <- c("intercept", paste0("X", 1:(ncol(X) - 1)))
   }
-
 
   # Estimation of crossproducts and other useful matrices
   XXt <- crossprod(X)
-  XXtbar <- (1 / n) * XXt
-  minvpXXtbar <- min(eigen(XXtbar, only.values = TRUE)$values)
+  XXtbar <- (1/n) * XXt # shortcut notation "S" in the article.
+  minvpXXtbar <- min(eigen(XXtbar, only.values = TRUE)$values) # plug-in \hat{\lambda_{reg}} in the article.
   inverse_XXt <- solve(XXt)
   inverse_XXtbar <- n * inverse_XXt
   inverse_sqrt_XXtbar <- expm::sqrtm(inverse_XXtbar) # Estimate of E(XX')^{-1/2}
@@ -138,11 +139,11 @@ CI.OLS <- function(
   # this is a list of n elements which are all vectors of size p
   list_Xtilde_i <- lapply(
     X = 1:n,
-    FUN = function(i) { inverse_sqrt_XXtbar %*% matrix(X[i, ], ncol = 1) } )
+    FUN = function(i) {inverse_sqrt_XXtbar %*% matrix(X[i, ], ncol = 1)})
 
   norms_row_X = apply(X = X, MARGIN = 1, FUN = function(u){sqrt(sum(u^2))})
   norms_row_X_tilde = unlist(lapply(X = list_Xtilde_i,
-                                    FUN = function(x) {sqrt(sum(x^2))} ) )
+                                    FUN = function(x) {sqrt(sum(x^2))}))
 
   # Regression
   reg = stats::lm(Y ~ X - 1)
