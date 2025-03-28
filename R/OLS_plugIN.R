@@ -17,17 +17,15 @@ OLS.updateBounds <- function(env)
 
   if (is.null(env$bounds$K_reg)){
 
-    p <- ncol(env$X)
+    p <- ncol(X)
 
-    veca_To_mean_over_obs_i_for_KX <- lapply(
-      X = 1:env$n,
-      FUN = function(i){
-        sum( ( env$list_Xtilde_i[[i]] %*% t( env$list_Xtilde_i[[i]] ) -
-                 diag(x = 1, nrow = p, ncol = p) )^2 )
-      }
-    )
+    veca_to_mean_over_obs_i_for_K_reg <- lapply(
+      X = 1:n, FUN = function(i) {
+        sum((list_Xtilde_i[[i]] %*% t(list_Xtilde_i[[i]]) -
+                 diag(x = 1, nrow = p, ncol = p))^2)
+        })
 
-    env$bounds$K_reg <- mean(veca_To_mean_over_obs_i_for_KX)
+    env$bounds$K_reg <- mean(veca_to_mean_over_obs_i_for_K_reg)
   }
 
   if (is.null(env$bounds$K_eps)){
