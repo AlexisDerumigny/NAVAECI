@@ -3,7 +3,7 @@
 #'
 #' @param data vector of univariate observations.
 #'
-#' @param alpha 1 - level of confidence of the CI.
+#' @param alpha 1 - level of confidence of the CI; nominal level = 1 - alpha.
 #' By default, alpha is set to 0.05, yielding a 95% CI.
 #'
 #' @param a the free parameter \eqn{a} (or \eqn{a_n}) of the interval.
@@ -24,6 +24,12 @@
 #' If the argument is not provided (default argument NULL), the value used is 
 #' the plug-in counterpart \eqn{\widehat{K}}, that is, the empirical kurtosis 
 #' of the observations.
+#' 
+#' @param known_variance by default NULL, in this case, the function computes
+#' the CI in the general case with an unknown variance (which is estimated).
+#' Otherwise, a scalar numeric vector equal to the (assumed/known) variance.
+#' (NB: if the option is used, one must provide the variance and not the standard 
+#' deviation.)
 #'
 #' @param param_BE_EE parameters to compute the BE or EE bound \eqn{\delta_n} used
 #' to construct the confidence interval.
@@ -120,14 +126,19 @@
 # But in all cases, it requires quite large sample sizes.
 #
 Navae_ci_mean <- function(
-    data, alpha = 0.05, a = NULL, power_of_n_for_b = NULL, bound_K = NULL,
-    param_BE_EE = list(
-      choice = "best",
-      setup = list(continuity = FALSE, iid = TRUE, no_skewness = FALSE),
-      regularity = list(C0 = 1, p = 2),
-      eps = 0.1), 
-    na.rm = FALSE, verbose = FALSE)
+  data, alpha = 0.05, 
+  a = NULL, power_of_n_for_b = NULL, 
+  bound_K = NULL, known_variance = NULL,
+  param_BE_EE = list(
+    choice = "best",
+    setup = list(continuity = FALSE, iid = TRUE, no_skewness = FALSE),
+    regularity = list(C0 = 1, p = 2),
+    eps = 0.1), 
+  na.rm = FALSE, verbose = FALSE)
 {
+  
+  # 1- Checks on data and computation of empirical mean and variance ----
+  
   if (!is.vector(data, mode = "numeric")) {
     stop("'data' must be a numeric vector.")
   }
@@ -146,6 +157,8 @@ Navae_ci_mean <- function(
   xi_bar <- mean(xi)
   sigma_hat <- sqrt(stats::var(xi))
   
+  # 2- Determination of the free parameter a_n ----
+  
   if (is.null(power_of_n_for_b)) {
     power_of_n_for_b <- -2/5
   } else {
@@ -160,14 +173,16 @@ Navae_ci_mean <- function(
     a <- 1 + b_n
   }
   
+  # 3- Determination of the bound K and the bound delta_n ----
+  
   if (is.null(bound_K)) {
     bound_K_method <- "plug-in"
-    bound_K <- Empirical_kurtosis(xi, xi_bar, sigma_hat)
+    bound_K <- Empirical_kurtosis(xi = xi, xi_bar = xi_bar, sigma_hat = sigma_hat)
   } else {
     bound_K_method <- "bound"
   }
   
-  delta_n_BE <- BE_bound_Shevtsova(bound_K, n)
+  delta_n_BE <- BE_bound_Shevtsova(bound_K = bound_K, n = n)
   
   if (is.vector(param_BE_EE, mode = "character") && (param_BE_EE == "BE")) {
     
@@ -194,51 +209,88 @@ Navae_ci_mean <- function(
     }
   }
   
-  nu_n_var <- exp(-n*(1 - 1/a)^2 / (2*bound_K))
+  # 4- Computation of our CI ----
   
-  arg_modif_quant <- 1 - alpha/2 + delta_n + nu_n_var/2
-  
-  indicator_R_regime <- arg_modif_quant >= stats::pnorm(sqrt(n / a))
-  
-  if (indicator_R_regime) {
+  if (is.null(known_variance)) {
     
-    ci <- c(-Inf, Inf)
-    ratio_length_wrt_CLT <- Inf
+    # 4a- CI in the general case with unknown variance ----
     
-  } else {
+    nu_n_var <- exp(-n*(1 - 1/a)^2 / (2*bound_K))
     
-    q <- stats::qnorm(arg_modif_quant)
-    C_n <- 1 / sqrt(1/a - (1/n) * q^2)
-    half_length <- sigma_hat/sqrt(n) * C_n * q
-    ci <- xi_bar + c(-1, 1) * half_length
-    ratio_length_wrt_CLT <- C_n * q / stats::qnorm(1 - alpha/2)
-  }
-  
-  if (verbose) {
+    arg_modif_quant <- 1 - alpha/2 + delta_n + nu_n_var/2
+    
+    indicator_R_regime <- arg_modif_quant >= stats::pnorm(sqrt(n / a))
     
     minimal_alpha_to_exit_R_regime <-
       2*(1 + delta_n + nu_n_var/2 - stats::pnorm(sqrt(n / a)))
+    
+    if (indicator_R_regime) {
+      
+      ci <- c(-Inf, Inf)
+      ratio_length_wrt_CLT <- Inf
+      
+    } else {
+      
+      q <- stats::qnorm(arg_modif_quant)
+      C_n <- 1 / sqrt(1/a - (1/n) * q^2)
+      half_length <- sigma_hat/sqrt(n) * C_n * q
+      ci <- xi_bar + c(-1, 1) * half_length
+      ratio_length_wrt_CLT <- C_n * q / stats::qnorm(1 - alpha/2)
+    }
+    
+  } else {
+    
+    # 4b- CI in the particular case with known variance ----
+    
+    if ((!is.numeric(known_variance)) || (length(known_variance) > 1)) {
+      stop("Argument 'known_variance' must be a scalar numeric vector.")
+    }
+    
+    arg_modif_quant <- 1 - alpha/2 + delta_n
+    
+    indicator_R_regime <- arg_modif_quant >= 1
+    
+    minimal_alpha_to_exit_R_regime <- 2 * delta_n
+    
+    if (indicator_R_regime) {
+      
+      ci <- c(-Inf, Inf)
+      ratio_length_wrt_CLT <- Inf
+      
+    } else {
+      
+      q <- stats::qnorm(arg_modif_quant)
+      half_length <- sqrt(known_variance) * q / sqrt(n)
+      ci <- xi_bar + c(-1, 1) * half_length
+      ratio_length_wrt_CLT <- (q / stats::qnorm(1 - alpha/2)) * (sqrt(known_variance) / sigma_hat)
+    }
+    
+  }
+  
+  # 5- Output ----
+  
+  if (verbose) {
     
     # Comparison with usual "asymptotic" CI (based on CLT + Slutsky)
     half_length_CLT <- sigma_hat/sqrt(n) * stats::qnorm(1 - alpha/2)
     ci_CLT <- xi_bar + c(-1, 1) * half_length_CLT
     
-      return(list(ci = ci,
-                  indicator_R_regime = indicator_R_regime,
-                  ci_CLT = ci_CLT,
-                  ratio_length_wrt_CLT = ratio_length_wrt_CLT,
-                  delta_n = delta_n,
-                  delta_n_from = delta_n_from,
-                  arg_modif_quant = arg_modif_quant,
-                  minimal_alpha_to_exit_R_regime = minimal_alpha_to_exit_R_regime,
-                  bound_K_method = bound_K_method, 
-                  bound_K_value = bound_K))
+    return(list(ci = ci,
+                indicator_R_regime = indicator_R_regime,
+                ci_CLT = ci_CLT,
+                ratio_length_wrt_CLT = ratio_length_wrt_CLT,
+                delta_n = delta_n,
+                delta_n_from = delta_n_from,
+                arg_modif_quant = arg_modif_quant,
+                minimal_alpha_to_exit_R_regime = minimal_alpha_to_exit_R_regime,
+                bound_K_method = bound_K_method, 
+                bound_K_value = bound_K))
   } else {
     return(ci)
   }
 }
 
-# Auxiliary functions -----------------------------------------------------
+# Auxiliary functions ----------------------------------------------------------
 
 Empirical_kurtosis <- function(xi, xi_bar, sigma_hat)
 {
@@ -247,6 +299,6 @@ Empirical_kurtosis <- function(xi, xi_bar, sigma_hat)
 
 BE_bound_Shevtsova <- function(bound_K, n)
 {
-  constant_BE <- 0.4690
-  return(constant_BE * bound_K^(3/4) / sqrt(n))
+  constant_BE_iid <- 0.4690
+  return(constant_BE_iid * bound_K^(3/4) / sqrt(n))
 }
