@@ -9,30 +9,45 @@ Navae_ci_mean(
   data,
   alpha = 0.05,
   a = NULL,
+  power_of_n_for_b = NULL,
   bound_K = NULL,
+  known_variance = NULL,
   param_BE_EE = list(choice = "best", setup = list(continuity = FALSE, iid = TRUE,
     no_skewness = FALSE), regularity = list(C0 = 1, p = 2), eps = 0.1),
-  na.rm = FALSE
+  na.rm = FALSE,
+  verbose = FALSE
 )
 }
 \arguments{
-\item{data}{vector of univariate observations}
+\item{data}{vector of univariate observations.}
 
-\item{alpha}{1 - level of confidence of the CI.
-By default, alpha is set to 0.05, yielding a 95\% CI.}
+\item{alpha}{1 - level of confidence of the CI; nominal level = 1 - alpha.
+By default, alpha is set to 0.05, yielding a 95% CI.}
 
-\item{a}{the free parameter \eqn{a} of the interval.
-If the argument is not provided, the following default choice is made
-a = 1 + \eqn{b_n} with \eqn{b_n = n^{-1/5}}.
+\item{a}{the free parameter \eqn{a} (or \eqn{a_n}) of the interval.}
+
+\item{power_of_n_for_b}{If the argument \code{a} is not provided, the following default choice is 
+made for the free parameter:
+a_n = a = 1 + \eqn{b_n} with \eqn{b_n = n^{\code{power_of_n_for_b}}}.
+If \code{power_of_n_for_b} is not provided (default argument NULL),
+the default choice is \code{power_of_n_for_b} = -2/5.
 Such a choice satisfies the conditions on the sequence of free parameters
 for the CI to be asymptotically exact pointwise and uniformly over the set
-of distributions with a bounded kurtosis.}
+of distributions with a bounded kurtosis. If the specified 
+\code{power_of_n_for_b} violates those condition, a warning is output.}
 
 \item{bound_K}{bound on the kurtosis K_4(theta) of the distribution of the
 observations that are assumed to be i.i.d.
-The choice of 9 covers most "usual" distribution.
-Otherwise, if the argument is not provided, the value used is the plug-in
-counterpart \eqn{\widehat{K}}, that is, the empirical kurtosis of the observations.}
+The choice of 9 covers most "usual" distributions.
+If the argument is not provided (default argument NULL), the value used is 
+the plug-in counterpart \eqn{\widehat{K}}, that is, the empirical kurtosis 
+of the observations.}
+
+\item{known_variance}{by default NULL, in this case, the function computes
+the CI in the general case with an unknown variance (which is estimated).
+Otherwise, a scalar numeric vector equal to the (assumed/known) variance.
+(NB: if the option is used, one must provide the variance and not the standard 
+deviation.)}
 
 \item{param_BE_EE}{parameters to compute the BE or EE bound \eqn{\delta_n} used
 to construct the confidence interval.
@@ -51,8 +66,7 @@ Otherwise, \code{param_BE_EE} is a list of four objects: \itemize{
 as described in the arguments of the function \code{BoundEdegworth::Bound_EE1}.
 Together, they specify the bounds and assumptions used to compute the
 bound \eqn{\delta_n} from Derumigny et al. (2023).
-
-Finally, if choice is equal to \code{"best"}, the bound used is the minimum
+Finally, if \code{choice} is equal to \code{"best"}, the bound used is the minimum
 between the previous one (with \code{choice = "EE"}) and the bound \code{"BE"}.
 
 By default, following Remark 3.3 of the article, \code{"best"} is used and
@@ -61,11 +75,22 @@ regularity assumptions (continuous or unskewed distribution) and the bound on
 kurtosis used is the one specified in the previous the argument \code{bound_K}.}
 
 \item{na.rm}{logical, should missing values in \code{data} be removed?}
+
+\item{verbose}{FALSE by default, if TRUE, several additional elements are reported}
 }
 \value{
-this function returns a numerical vector of size 2: the first element
-is the lower end of the CI, the second the upper end.
-In the \eqn{\mathbb{R}} regime, the CI is \code{(-Inf, Inf)}.
+with \code{verbose = FALSE}, it returns a numerical vector of size 2: 
+the first element is the lower end of the CI, the second the upper end.
+In the \eqn{\mathbb{R}} regime, the CI is \code{(-Inf, Inf)}; otherwise
+it is a numeric 2-length vector.
+with \code{verbose = TRUE}, a list is output with various elements:
+- the CI;
+- the classical "asymptotic" CI based on CLT (as a comparison);
+- the regime of our CI (indicator of being in \eqn{\mathbb{R}} regime)
+- the bound delta_n used: its numerical value and whether it comes from BE or EE;
+- the value of the argument of the modified quantile;
+- the minimal alpha to exit the \eqn{\mathbb{R}} regime.
+- the value K used and the method
 }
 \description{
 Compute NAVAE CI for the expectation based on empirical mean estimator
@@ -75,9 +100,16 @@ and Berry-Esseen (BE) or Edgeworth Expansions (EE) bounds
 n = 1000
 data = rexp(n, 1)
 Navae_ci_mean(data, bound_K = 9)
+Navae_ci_mean(data, bound_K = 9, a = 6)
 Navae_ci_mean(data) # plug-in for K
 
-n = 50 * 10^3
+n = 1000
+data = rexp(n, 1)
+Navae_ci_mean(data, bound_K = 9)
+Navae_ci_mean(data, bound_K = 9, a = 1 + 5)
+Navae_ci_mean(data) # plug-in for K
+
+n = 5 * 10^3
 data = rexp(n, 1)
 Navae_ci_mean(data, bound_K = 9, alpha = 0.2, a = 1 + n^(-0/5))
 Navae_ci_mean(data, bound_K = 9, alpha = 0.2)
@@ -99,12 +131,13 @@ Navae_ci_mean(data, alpha = 0.1, param_BE_EE = listParams2)
 Navae_ci_mean(data, alpha = 0.05, param_BE_EE = listParams1)
 Navae_ci_mean(data, alpha = 0.05, param_BE_EE = listParams2)
 
-n = 100 * 10^3
+n = 1000 * 10^3
 data = rexp(n, 1)
 Navae_ci_mean(data, bound_K = 9, alpha = 0.10)
 Navae_ci_mean(data, alpha = 0.10)
 Navae_ci_mean(data, bound_K = 9, alpha = 0.05)
 Navae_ci_mean(data, bound_K = 9, alpha = 0.05, a = 1 + n^(-1/3))
+Navae_ci_mean(data, bound_K = 9, alpha = 0.05, a = 1 + 4)
 Navae_ci_mean(data, bound_K = 9, alpha = 0.05, a = 1 + n^(-1/5))
 Navae_ci_mean(data, bound_K = 9, alpha = 0.05, a = 1 + n^(-0.5/5))
 
