@@ -444,38 +444,28 @@ Navae_ci_ols <- function(
 
   # 12- Returning output ===============================================================
 
-  if (verbose) {
+  about_delta_n = list(
+    delta_n = delta_n,
+    delta_n_u = delta_n_u,
+    delta_n_from = delta_n_from,
+    delta_n_from_u = delta_n_from_u)
 
-    about_delta_n = list(
-      delta_n = delta_n,
-      delta_n_u = delta_n_u,
-      delta_n_from = delta_n_from,
-      delta_n_from_u = delta_n_from_u)
+  ratio_length_wrt_ci_asymp <- result[, 5] / result_asymp[, 3]
 
-    ratio_length_wrt_ci_asymp <- result[, 5] / result_asymp[, 3]
+  minimal_alpha_to_enter_Edg_regime <- 2 * nu_n_Edg_u
 
-    minimal_alpha_to_enter_Edg_regime <- 2 * nu_n_Edg_u
-
-    return(list(ci_navae = result,
-                ci_asymp = result_asymp,
-                allBounds = allBounds,
-                about_delta_n = about_delta_n,
-                ratio_length_wrt_ci_asymp = ratio_length_wrt_ci_asymp,
-                nu_n_Edg_u = nu_n_Edg_u,
-                nu_n_Approx_u = nu_n_Approx_u,
-                bound_Voracle = bound_Voracle,
-                Rnlin_u = Rnlin_u,
-                Rnvar_u = Rnvar_u,
-                Rnvar_u_times_norm_u_squared = Rnvar_u_times_norm_u_squared,
-                minimal_alpha_to_enter_Edg_regime = minimal_alpha_to_enter_Edg_regime))
-
-  } else {
-
-    return(list(ci_navae = result,
-                ci_asymp = result_asymp,
-                bounds_value = bounds))
-  }
-
+  return(list(ci_navae = result,
+              ci_asymp = result_asymp,
+              allBounds = allBounds,
+              about_delta_n = about_delta_n,
+              ratio_length_wrt_ci_asymp = ratio_length_wrt_ci_asymp,
+              nu_n_Edg_u = nu_n_Edg_u,
+              nu_n_Approx_u = nu_n_Approx_u,
+              bound_Voracle = bound_Voracle,
+              Rnlin_u = Rnlin_u,
+              Rnvar_u = Rnvar_u,
+              Rnvar_u_times_norm_u_squared = Rnvar_u_times_norm_u_squared,
+              minimal_alpha_to_enter_Edg_regime = minimal_alpha_to_enter_Edg_regime))a
 }
 
 # Auxiliary functions ----------------------------------------------------------
