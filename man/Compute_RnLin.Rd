@@ -3,16 +3,16 @@
 \name{Compute_RnLin}
 \alias{Compute_RnLin}
 \title{Function to compute R_{n, lin}(gamma) for a free variable gamma
-concentr_XXtranspose corresponds to the sqrt(K_reg / (n * gamma))
+gammatilde corresponds to the sqrt(K_reg / (n * gamma))
 in the paper.
 It is possible to sharpen the concentration with additional assumptions
 (bounded support, etc.), see function Compute_concentrationXXt.}
 \usage{
-Compute_RnLin(gamma, concentr_XXtranspose, bounds, matrix_u)
+Compute_RnLin(gamma, gammatilde, bounds, matrix_u)
 }
 \description{
 Function to compute R_{n, lin}(gamma) for a free variable gamma
-concentr_XXtranspose corresponds to the sqrt(K_reg / (n * gamma))
+gammatilde corresponds to the sqrt(K_reg / (n * gamma))
 in the paper.
 It is possible to sharpen the concentration with additional assumptions
 (bounded support, etc.), see function Compute_concentrationXXt.

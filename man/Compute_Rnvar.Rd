@@ -14,7 +14,7 @@ Compute_Rnvar(
   norms_row_X,
   residuals,
   bounds,
-  concentr_XXtranspose,
+  gammatilde,
   X,
   inverse_XXtbar,
   matrix_u

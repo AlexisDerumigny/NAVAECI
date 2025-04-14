@@ -666,7 +666,7 @@ Compute_Rnvar <- function(
 }
 
 
-Compute_concentrationXXt <- function(bounded_case, bounds, n, d, delta)
+Compute_concentrationXXt <- function(bounded_case, bounds, n, d, gamma)
 {
   if (bounded_case){
     # Concentration of XX transpose, assuming bounded regressors
@@ -677,7 +677,7 @@ Compute_concentrationXXt <- function(bounded_case, bounds, n, d, delta)
   } else {
     # Concentration of XX transpose without assuming bounded regressors
 
-    concentr_XXtranspose <- sqrt(bounds$K_reg / (n * delta))
+    concentr_XXtranspose <- sqrt(bounds$K_reg / (n * gamma))
   }
 
   return (concentr_XXtranspose)
