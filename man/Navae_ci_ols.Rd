@@ -2,7 +2,7 @@
 % Please edit documentation in R/CI_OLS.R
 \name{Navae_ci_ols}
 \alias{Navae_ci_ols}
-\title{Compute NAVAE CI for coefficients of a linear regression based on 
+\title{Compute NAVAE CI for coefficients of a linear regression based on
 the OLS estimator and Berry-Esseen (BE) or Edgeworth Expansions (EE) bounds}
 \usage{
 Navae_ci_ols(
@@ -73,7 +73,7 @@ with the following columns: \itemize{
 }
 }
 \description{
-Compute NAVAE CI for coefficients of a linear regression based on 
+Compute NAVAE CI for coefficients of a linear regression based on
 the OLS estimator and Berry-Esseen (BE) or Edgeworth Expansions (EE) bounds
 }
 \examples{

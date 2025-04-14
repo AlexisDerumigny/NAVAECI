@@ -5,7 +5,7 @@
 \title{Function to compute R_{n, var}(gamma) for a free variable gamma
 (The different part follows the order of the paper.)
 NB: in fact, it returns ||u||^2 * Rnvar(gamma), since Rnvar is always
-used multiplied by ||u||^2 (equivalently, the part ||u||^2 could be put in 
+used multiplied by ||u||^2 (equivalently, the part ||u||^2 could be put in
 the definition of Rnvar as for Rnlin).}
 \usage{
 Compute_Rnvar(
@@ -24,6 +24,6 @@ Compute_Rnvar(
 Function to compute R_{n, var}(gamma) for a free variable gamma
 (The different part follows the order of the paper.)
 NB: in fact, it returns ||u||^2 * Rnvar(gamma), since Rnvar is always
-used multiplied by ||u||^2 (equivalently, the part ||u||^2 could be put in 
+used multiplied by ||u||^2 (equivalently, the part ||u||^2 could be put in
 the definition of Rnvar as for Rnlin).
 }
