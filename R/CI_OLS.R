@@ -371,7 +371,7 @@ Navae_ci_ols <- function(
     cat("Computing components of the CI: \n")
     cat("*  nu_n_Exp_u: "   ,  nu_n_Exp_u  , "\n" )
     cat("*  nu_n_Edg_u: "   ,  nu_n_Edg_u  , "\n" )
-    cat("*  bound_Voracle: ",  nu_n_Approx_u  , "\n" )
+    cat("*  bound_Voracle: ",  bound_Voracle  , "\n" )
     cat("*  nu_n_Approx_u: ",  nu_n_Approx_u  , "\n" )
 
     cat("\n")
