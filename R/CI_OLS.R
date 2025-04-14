@@ -694,11 +694,7 @@ computeBounds <- function(env, verbose = 2)
     empirical_kurtosis_xi_u <- mean_xi4_u / mean_xi2_u^2
     env$bounds$K_xi_u <- empirical_kurtosis_xi_u
 
-    allBounds[4, ] = data.frame(name   = "K_xi",
-                                value  = NA,
-                                method = "not computed by plug-in")
-
-    allBounds[5, ] = list(name   = "K_xi_u",
+    allBounds[4, ] = list(name   = "K_xi",
                           value  = list(list(env$bounds$K_xi_u)),
                           method = "plug-in")
 
@@ -707,19 +703,14 @@ computeBounds <- function(env, verbose = 2)
 
   } else {
     if (is.null(env$bounds$K_xi)) {
-      allBounds[4, ] = data.frame(name   = "K_xi",
-                                  value  = env$K_xi,
-                                  method = "provided by user")
-    } else {
-      allBounds[4, ] = data.frame(name   = "K_xi",
-                                  value  = env$bounds$K_xi,
-                                  method = "provided by user")
+      env$bounds$K_xi <- env$K_xi
     }
+
     # If a bound on K_xi is provided, simply replicate it number_u times
     # to have a vector in bounds$K_xi_u as in the plug-in case.
     env$bounds$K_xi_u = rep(env$bounds$K_xi, length.out = env$number_u)
 
-    allBounds[5, ] = list(name   = "K_xi_u",
+    allBounds[4, ] = list(name   = "K_xi",
                           value  = list(list(env$bounds$K_xi_u)),
                           method = "provided by user")
   }
@@ -732,12 +723,12 @@ computeBounds <- function(env, verbose = 2)
   if (is.null(env$bounds$C)) {
 
     env$bounds$C <- max(env$norms_row_X_tilde^2)
-    allBounds[6, ] = data.frame(name   = "C",
+    allBounds[5, ] = data.frame(name   = "C",
                                 value  = env$bounds$C,
                                 method = "plug-in")
   } else {
 
-    allBounds[6, ] = data.frame(name   = "C",
+    allBounds[5, ] = data.frame(name   = "C",
                                 value  = env$bounds$C,
                                 method = "provided by user")
   }
@@ -756,17 +747,17 @@ computeBounds <- function(env, verbose = 2)
     }
 
     env$bounds$B <- base::norm(x = B_before_norm, type = "2")
-    allBounds[7, ] = data.frame(name   = "B",
+    allBounds[6, ] = data.frame(name   = "B",
                                 value  = env$bounds$B,
                                 method = "plug-in")
   } else {
 
-    allBounds[7, ] = data.frame(name   = "B",
+    allBounds[6, ] = data.frame(name   = "B",
                                 value  = env$bounds$B,
                                 method = "provided by user")
   }
 
-  rownames(allBounds) <- c("lambda_reg", "K_reg", "K_eps", "K_xi", "K_xi_u", "C", "B")
+  rownames(allBounds) <- c("lambda_reg", "K_reg", "K_eps", "K_xi", "C", "B")
 
   if (verbose >= 2){
     cat("Bounds: \n")
