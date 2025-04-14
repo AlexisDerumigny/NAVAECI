@@ -22,31 +22,31 @@ Navae_ci_mean(
 \item{data}{vector of univariate observations.}
 
 \item{alpha}{1 - level of confidence of the CI; nominal level = 1 - alpha.
-By default, alpha is set to 0.05, yielding a 95% CI.}
+By default, alpha is set to 0.05, yielding a 95\% CI.}
 
 \item{a}{the free parameter \eqn{a} (or \eqn{a_n}) of the interval.}
 
-\item{power_of_n_for_b}{If the argument \code{a} is not provided, the following default choice is 
+\item{power_of_n_for_b}{If the argument \code{a} is not provided, the following default choice is
 made for the free parameter:
 a_n = a = 1 + \eqn{b_n} with \eqn{b_n = n^{\code{power_of_n_for_b}}}.
 If \code{power_of_n_for_b} is not provided (default argument NULL),
 the default choice is \code{power_of_n_for_b} = -2/5.
 Such a choice satisfies the conditions on the sequence of free parameters
 for the CI to be asymptotically exact pointwise and uniformly over the set
-of distributions with a bounded kurtosis. If the specified 
+of distributions with a bounded kurtosis. If the specified
 \code{power_of_n_for_b} violates those condition, a warning is output.}
 
 \item{bound_K}{bound on the kurtosis K_4(theta) of the distribution of the
 observations that are assumed to be i.i.d.
 The choice of 9 covers most "usual" distributions.
-If the argument is not provided (default argument NULL), the value used is 
-the plug-in counterpart \eqn{\widehat{K}}, that is, the empirical kurtosis 
+If the argument is not provided (default argument NULL), the value used is
+the plug-in counterpart \eqn{\widehat{K}}, that is, the empirical kurtosis
 of the observations.}
 
 \item{known_variance}{by default NULL, in this case, the function computes
 the CI in the general case with an unknown variance (which is estimated).
 Otherwise, a scalar numeric vector equal to the (assumed/known) variance.
-(NB: if the option is used, one must provide the variance and not the standard 
+(NB: if the option is used, one must provide the variance and not the standard
 deviation.)}
 
 \item{param_BE_EE}{parameters to compute the BE or EE bound \eqn{\delta_n} used
@@ -79,7 +79,7 @@ kurtosis used is the one specified in the previous the argument \code{bound_K}.}
 \item{verbose}{FALSE by default, if TRUE, several additional elements are reported}
 }
 \value{
-with \code{verbose = FALSE}, it returns a numerical vector of size 2: 
+with \code{verbose = FALSE}, it returns a numerical vector of size 2:
 the first element is the lower end of the CI, the second the upper end.
 In the \eqn{\mathbb{R}} regime, the CI is \code{(-Inf, Inf)}; otherwise
 it is a numeric 2-length vector.
