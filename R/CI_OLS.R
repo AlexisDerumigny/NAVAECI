@@ -127,6 +127,7 @@ Navae_ci_ols <- function(
     cat("*  n = ", n, "\n")
     cat("*  p = ", p, "   (including the intercept)\n")
     cat("*  number of u = ", number_u, "\n")
+    cat("\n")
   }
 
   # Estimation of crossproducts and other useful matrices
@@ -197,121 +198,9 @@ Navae_ci_ols <- function(
 
   # 4- Computing plug-ins for missing bounds ===================================
 
-  # Bound lambda_reg
+  env <- environment()
+  allBounds = computeBounds(env = env, verbose = verbose)
 
-  if (is.null(bounds$lambda_reg)) {
-    bound_lambda_reg_method <- "plug-in"
-    bounds$lambda_reg <- minvpXXtbar
-  } else {
-    bound_lambda_reg_method <- "bound"
-  }
-
-  # Bound K_reg
-
-  if (is.null(bounds$K_reg)) {
-    bound_K_reg_method <- "plug-in"
-    veca_to_mean_over_obs_i_for_K_reg <- unlist(lapply(
-      X = 1:n, FUN = function(i) {
-        sum((list_Xtilde_i[[i]] %*% t(list_Xtilde_i[[i]]) -
-               diag(x = 1, nrow = p, ncol = p))^2)
-      }))
-    bounds$K_reg <- mean(veca_to_mean_over_obs_i_for_K_reg)
-
-    # Using the expression in the overleaf: way bigger typo probably???
-    # alt_K_reg_hat <- mean(unlist(lapply(
-    #   X = 1:n, FUN = function(i) {
-    #     sum((as.matrix(X[i,], ncol = 1) %*% t(as.matrix(X[i,], ncol = 1)) -XXt)^2)
-    #   })))
-  } else {
-    bound_K_reg_method <- "bound"
-  }
-
-  # Bound K_epsilon
-
-  if (is.null(bounds$K_eps)) {
-
-    bound_K_eps_method <- "plug-in"
-
-    # bounds$K_eps <- mean(norms_row_X^4 * reg$residuals^4)
-    # as written in the article 28 March, but typo? should be X tilde, no?
-    bounds$K_eps <- mean(norms_row_X_tilde^4 * reg$residuals^4)
-
-  } else {
-    bound_K_eps_method <- "bound"
-  }
-
-  # Bound K_xi
-
-  if (!is.null(bounds$K_xi) && !is.null(K_xi)) {
-    stop("The bound K_xi was provided twice; use either K_xi or bounds argument")
-  }
-
-  if (is.null(bounds$K_xi) && is.null(K_xi)) {
-    bound_K_xi_method <- "plug-in"
-    xi_u_i <- do.call(
-      what = cbind,
-      args = lapply(X = 1:n,
-                    FUN = Compute_xi_u_for_one_obs_i,
-                    dataX = X, inverse_XXtbar = inverse_XXtbar,
-                    matrix_u = matrix_u, residuals = reg$residuals))
-    mean_xi4_u <- rowMeans(xi_u_i^4)
-    mean_xi2_u <- rowMeans(xi_u_i^2)
-    empirical_kurtosis_xi_u <- mean_xi4_u / mean_xi2_u^2
-    bounds$K_xi_u <- empirical_kurtosis_xi_u
-    # use of name 'K_xi_u' to stress it is a vector (u-specific element)
-    # and keep a scalar bounds$K_xi if given (as memory)
-  } else {
-    bound_K_xi_method <- "bound"
-    if (is.null(bounds$K_xi)) {
-      bounds$K_xi <- K_xi
-    }
-    # If a bound on K_xi is provided, simply replicate it number_u times
-    # to have a vector in bounds$K_xi_u as in the plug-in case.
-    bounds$K_xi_u = rep(bounds$K_xi, length.out = number_u)
-  }
-
-  # Bound B and C (used when options$bounded_case is TRUE)
-  # (used for Bernstein concentration of square matrices
-  # applied to A = X_i tilde X_i tilde')
-
-  if (is.null(bounds$C)) {
-    bound_C_method <- "plug-in"
-    bounds$C = max(norms_row_X_tilde^2)
-  } else {
-    bound_C_method <- "bound"
-  }
-
-  if (is.null(bounds$B)) {
-    bound_B_method <- "plug-in"
-
-    # By definition of X_i tilde,
-    # E[A] = E[X_i tilde X_i tilde'] = identity matrix of size p
-    expectation_A = diag(p)
-    B_before_norm = 0
-    for (i in 1:n) {
-      A_i = matrix(list_Xtilde_i[[i]]) %*% t(matrix(list_Xtilde_i[[i]]))
-      # Computation of (A - E(A))(A - E(A))
-      A_mEA_sq = (A_i - expectation_A) %*% (A_i - expectation_A)
-      B_before_norm = B_before_norm + A_mEA_sq
-    }
-    bounds$B = base::norm(x = B_before_norm, type = "2")
-  } else {
-    bound_B_method <- "bound"
-  }
-
-
-  if (verbose >= 2){
-    cat("Bounds: \n")
-    cat("*  K_reg:",     bounds$K_reg,     " (", bound_K_reg_method, ")\n" )
-    cat("*  K_epsilon:", bounds$K_epsilon, " (", bound_K_eps_method, ")\n" )
-    cat("*  K_xi:",      bounds$K_xi,      " (", bound_K_xi_method , ")\n" )
-
-    if( options$bounded_case ){
-      cat("*  C:",      bounds$C,      " (", bound_C_method , ")\n" )
-      cat("*  B:",      bounds$C,      " (", bound_C_method , ")\n" )
-    }
-    cat("\n")
-  }
 
   # 5- Computing concentration, Rlin, Rnvar ====================================
 
@@ -388,7 +277,7 @@ Navae_ci_ols <- function(
 
   param_BE_EE$setup$iid = TRUE # we always consider the iid framework
 
-  if (bound_K_xi_method == "bound") {
+  if (allBounds["K_xi", "method"] == "provided by user") {
     # K_xi is provided => K_xi and delta_nE are uniform across vectors u
 
     delta_n_BE <- BE_bound_Shevtsova(bounds$K_xi, n)
@@ -557,14 +446,6 @@ Navae_ci_ols <- function(
 
   if (verbose) {
 
-    bounds_method = list(
-      lambda_reg = bound_lambda_reg_method,
-      K_reg = bound_K_reg_method,
-      K_eps = bound_K_eps_method,
-      K_xi = bound_K_xi_method,
-      C = bound_C_method,
-      B = bound_B_method)
-
     about_delta_n = list(
       delta_n = delta_n,
       delta_n_u = delta_n_u,
@@ -577,8 +458,7 @@ Navae_ci_ols <- function(
 
     return(list(ci_navae = result,
                 ci_asymp = result_asymp,
-                bounds_value = bounds,
-                bounds_method = bounds_method,
+                allBounds = allBounds,
                 about_delta_n = about_delta_n,
                 ratio_length_wrt_ci_asymp = ratio_length_wrt_ci_asymp,
                 nu_n_Edg_u = nu_n_Edg_u,
@@ -741,3 +621,165 @@ Compute_concentration_Bernstein <- function(B, C, delta, n, d)
   return( sqrt(2 * B * log(2 * d / delta) / n) +
             4 * C * log(2 * d / delta) / (3*n) )
 }
+
+
+
+computeBounds <- function(env, verbose = 2)
+{
+  # Bound lambda_reg
+
+  if (is.null(env$bounds$lambda_reg)) {
+
+    env$bounds$lambda_reg <- env$minvpXXtbar
+    allBounds = data.frame(name   = "lambda_reg",
+                           value  = env$bounds$lambda_reg,
+                           method = "plug-in")
+
+  } else {
+    allBounds = data.frame(name   = "lambda_reg",
+                           value  = env$bounds$lambda_reg,
+                           method = "provided by user")
+  }
+
+
+  # Bound K_reg
+
+  if (is.null(env$bounds$K_reg)) {
+
+    veca_to_mean_over_obs_i_for_K_reg <- unlist(lapply(
+      X = 1:env$n, FUN = function(i) {
+        sum((env$list_Xtilde_i[[i]] %*% t(env$list_Xtilde_i[[i]]) -
+               diag(x = 1, nrow = env$p, ncol = env$p))^2)
+      }))
+
+    env$bounds$K_reg <- mean(veca_to_mean_over_obs_i_for_K_reg)
+
+    allBounds[2, ] = data.frame(name   = "K_reg",
+                                value  = env$bounds$K_reg,
+                                method = "plug-in")
+  } else {
+
+    allBounds[2, ] = data.frame(name   = "K_reg",
+                                value  = env$bounds$K_reg,
+                                method = "provided by user")
+  }
+
+  # Bound K_epsilon
+
+  if (is.null(env$bounds$K_eps)) {
+
+    env$bounds$K_eps <- mean(env$norms_row_X_tilde^4 * env$reg$residuals^4)
+    allBounds[3, ] = data.frame(name   = "K_eps",
+                                value  = env$bounds$K_eps,
+                                method = "plug-in")
+
+  } else {
+    allBounds[3, ] = data.frame(name   = "K_eps",
+                                value  = env$bounds$K_eps,
+                                method = "provided by user")
+  }
+
+  # Bound K_xi
+
+  if (!is.null(env$bounds$K_xi) && !is.null(env$K_xi)) {
+    stop("The bound K_xi was provided twice; use either K_xi or bounds argument")
+  }
+
+  if (is.null(env$bounds$K_xi) && is.null(env$K_xi)) {
+
+    xi_u_i <- do.call(
+      what = cbind,
+      args = lapply(X = 1:env$n,
+                    FUN = Compute_xi_u_for_one_obs_i,
+                    dataX = env$X, inverse_XXtbar = env$inverse_XXtbar,
+                    matrix_u = env$matrix_u, residuals = env$reg$residuals))
+
+    mean_xi4_u <- rowMeans(xi_u_i^4)
+    mean_xi2_u <- rowMeans(xi_u_i^2)
+    empirical_kurtosis_xi_u <- mean_xi4_u / mean_xi2_u^2
+    env$bounds$K_xi_u <- empirical_kurtosis_xi_u
+
+    allBounds[4, ] = data.frame(name   = "K_xi",
+                                value  = NA,
+                                method = "not computed by plug-in")
+
+    allBounds[5, ] = list(name   = "K_xi_u",
+                          value  = list(list(env$bounds$K_xi_u)),
+                          method = "plug-in")
+
+    # use of name 'K_xi_u' to stress it is a vector (u-specific element)
+    # and keep a scalar bounds$K_xi if given (as memory)
+
+  } else {
+    if (is.null(env$bounds$K_xi)) {
+      allBounds[4, ] = data.frame(name   = "K_xi",
+                                  value  = env$K_xi,
+                                  method = "provided by user")
+    } else {
+      allBounds[4, ] = data.frame(name   = "K_xi",
+                                  value  = env$bounds$K_xi,
+                                  method = "provided by user")
+    }
+    # If a bound on K_xi is provided, simply replicate it number_u times
+    # to have a vector in bounds$K_xi_u as in the plug-in case.
+    env$bounds$K_xi_u = rep(env$bounds$K_xi, length.out = number_u)
+
+    allBounds[5, ] = list(name   = "K_xi_u",
+                          value  = list(list(env$bounds$K_xi_u)),
+                          method = "provided by user")
+  }
+
+
+  # Bound B and C (used when options$bounded_case is TRUE)
+  # (used for Bernstein concentration of square matrices
+  # applied to A = X_i tilde X_i tilde')
+
+  if (is.null(env$bounds$C)) {
+
+    env$bounds$C <- max(env$norms_row_X_tilde^2)
+    allBounds[6, ] = data.frame(name   = "C",
+                                value  = env$bounds$C,
+                                method = "plug-in")
+  } else {
+
+    allBounds[6, ] = data.frame(name   = "C",
+                                value  = env$bounds$C,
+                                method = "provided by user")
+  }
+
+  if (is.null(env$bounds$B)) {
+
+    # By definition of X_i tilde,
+    # E[A] = E[X_i tilde X_i tilde'] = identity matrix of size p
+    expectation_A = diag(env$p)
+    B_before_norm = 0
+    for (i in 1:n) {
+      A_i = matrix(env$list_Xtilde_i[[i]]) %*% t(matrix(env$list_Xtilde_i[[i]]))
+      # Computation of (A - E(A))(A - E(A))
+      A_mEA_sq = (A_i - expectation_A) %*% (A_i - expectation_A)
+      B_before_norm = B_before_norm + A_mEA_sq
+    }
+
+    env$bounds$B <- base::norm(x = B_before_norm, type = "2")
+    allBounds[7, ] = data.frame(name   = "B",
+                                value  = env$bounds$B,
+                                method = "plug-in")
+  } else {
+
+    allBounds[7, ] = data.frame(name   = "B",
+                                value  = env$bounds$B,
+                                method = "provided by user")
+  }
+
+  rownames(allBounds) <- c("lambda_reg", "K_reg", "K_eps", "K_xi", "K_xi_u", "C", "B")
+
+  if (verbose >= 2){
+    cat("Bounds: \n")
+    print(allBounds, row.names = FALSE)
+    cat("\n")
+  }
+
+  return(allBounds)
+}
+
+
