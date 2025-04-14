@@ -54,6 +54,17 @@
 #'
 #' print(myCI)
 #'
+#'
+#' X1 = rnorm(n, sd = 4)
+#' X2 = X1 + rnorm(n, sd = 0.1)
+#' true_eps = rnorm(n)
+#' Y = 3 + 8 * X1 + 4 * X2 + true_eps
+#' X = cbind(X1, X2)
+#'
+#' myCI <- Navae_ci_ols(Y, X)
+#'
+#' print(myCI)
+#'
 #' @export
 #'
 Navae_ci_ols <- function(
