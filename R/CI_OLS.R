@@ -717,7 +717,7 @@ computeBounds <- function(env, verbose = 2)
     }
     # If a bound on K_xi is provided, simply replicate it number_u times
     # to have a vector in bounds$K_xi_u as in the plug-in case.
-    env$bounds$K_xi_u = rep(env$bounds$K_xi, length.out = number_u)
+    env$bounds$K_xi_u = rep(env$bounds$K_xi, length.out = env$number_u)
 
     allBounds[5, ] = list(name   = "K_xi_u",
                           value  = list(list(env$bounds$K_xi_u)),
