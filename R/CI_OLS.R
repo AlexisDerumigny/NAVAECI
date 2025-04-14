@@ -88,7 +88,7 @@ Navae_ci_ols <- function(
     eps = 0.1),
   options = list(center = FALSE, bounded_case = FALSE, with_Exp_regime = FALSE),
   matrix_u = diag(NCOL(X) + 1),
-  verbose = FALSE)
+  verbose = 2)
 {
 
   # 1- Checking the validity of inputs ==================================
@@ -135,6 +135,13 @@ Navae_ci_ols <- function(
   # Attention si on recentre, à bien prendre en compte cela pour garder une colonne
   # de 1, à voir l'implémentation (argument précisant si X contient une constante
   # ou détection automatique, ou syntaxe avec une formula comme lm() ?)
+
+  if (verbose >= 2){
+    cat("Dimension of the problem: \n")
+    cat("*  n = ", n, "\n")
+    cat("*  p = ", p, "   (including the intercept)\n")
+    cat("*  number of u = ", number_u, "\n")
+  }
 
   # Estimation of crossproducts and other useful matrices
   XXt <- base::crossprod(X)
@@ -194,6 +201,13 @@ Navae_ci_ols <- function(
   if (is.null(omega)) {
     omega <- n^power_of_n_for_omega
   }
+
+  if (verbose >= 2){
+    cat("Tuning parameters: \n")
+    cat("*  a: "    , a    , "\n")
+    cat("*  omega: ", omega, "\n\n")
+  }
+
 
   # 4- Computing plug-ins for missing bounds ===================================
 
@@ -300,6 +314,19 @@ Navae_ci_ols <- function(
   }
 
 
+  if (verbose >= 2){
+    cat("Bounds: \n")
+    cat("*  K_reg:",     bounds$K_reg,     " (", bound_K_reg_method, ")\n" )
+    cat("*  K_epsilon:", bounds$K_epsilon, " (", bound_K_eps_method, ")\n" )
+    cat("*  K_xi:",      bounds$K_xi,      " (", bound_K_xi_method , ")\n" )
+
+    if( options$bounded_case ){
+      cat("*  C:",      bounds$C,      " (", bound_C_method , ")\n" )
+      cat("*  B:",      bounds$C,      " (", bound_C_method , ")\n" )
+    }
+    cat("\n")
+  }
+
   # 5- Computing concentration, Rlin, Rnvar ====================================
 
   # Computation of gamma
@@ -326,6 +353,17 @@ Navae_ci_ols <- function(
 
   Rnvar_u_times_norm_u_squared = Rnvar_u *
     apply(X = matrix_u, MARGIN = 1, FUN = function(x){sum(x^2)})
+
+
+  if (verbose >= 2){
+    cat("Concentration of XXt: \n")
+    cat("*  gamma:"  ,  gamma  , "\n" )
+    cat("*  Rnlin_u:",  Rnlin_u, "\n" )
+    cat("*  Rnvar_u:",  Rnvar_u, "\n" )
+
+    cat("\n")
+  }
+
 
   # 6- Computing the standard asymptotic CIs ===================================
   # In order to compare (and used in the simulation)
@@ -358,7 +396,6 @@ Navae_ci_ols <- function(
     result[, 2] = Inf
     result[, 3] = "R1"
     result[, 5] = Inf
-
   }
 
   # 8- Computation of the bound delta_n ========================================
@@ -434,6 +471,15 @@ Navae_ci_ols <- function(
 
   }
 
+
+  if (verbose >= 2){
+    cat("Bound on Berry-Esseen / Edgeworth expansions: \n")
+    cat("*  delta_n:"  ,  delta_n  , "\n" )
+    cat("*  delta_n_u:",  delta_n_u  , "\n" )
+
+    cat("\n")
+  }
+
   # 9- Computing parts of our CI ===============================================
 
   nu_n_Exp_u = OLS.Nu_nExp(alpha = alpha, omega = omega, a = a,
@@ -444,6 +490,17 @@ Navae_ci_ols <- function(
   bound_Voracle <- Vhat_u + Rnvar_u_times_norm_u_squared
 
   nu_n_Approx_u = Rnlin_u / sqrt(bound_Voracle)
+
+
+  if (verbose >= 2){
+    cat("Computing components of the CI: \n")
+    cat("*  nu_n_Exp_u: "   ,  nu_n_Exp_u  , "\n" )
+    cat("*  nu_n_Edg_u: "   ,  nu_n_Edg_u  , "\n" )
+    cat("*  bound_Voracle: ",  nu_n_Approx_u  , "\n" )
+    cat("*  nu_n_Approx_u: ",  nu_n_Approx_u  , "\n" )
+
+    cat("\n")
+  }
 
   # 10- Determining the regime, with or without regime Exp, for each u =========
 
