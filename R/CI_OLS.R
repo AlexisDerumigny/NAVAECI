@@ -560,19 +560,24 @@ Compute_Rnvar <- function(
   lambda_reg <- bounds$lambda_reg
   K_eps <- bounds$K_eps
 
-  part1 = (2 / (n * lambda_reg^3 * (1 - gammatilde)^2)) *
-    sqrt(K_eps / gamma) * mean(norms_row_X^4)
-
-  part2 = (2 * sqrt(2) / (lambda_reg^(5/2) * sqrt(n) * (1 - gammatilde))) *
-    (K_eps / gamma)^(1/4) * mean(norms_row_X^3 * abs(residuals))
-
-  part3 = gammatilde^2 / (lambda_reg^2 * (1 - gammatilde)^2) *
+  
+  part1 = 2 / (n * lambda_reg^3) *
+    (gammatilde / (1 - gammatilde) + 1)^2 *
+    sqrt(K_eps / gamma) *
+    mean(norms_row_X^4)
+  
+  part2 = 2 * sqrt(2) / (lambda_reg^(5/2) * sqrt(n)) *
+    (gammatilde / (1 - gammatilde) + 1) *
+    (K_eps / gamma)^(1/4) *
+    mean(norms_row_X^3 * abs(residuals))
+  
+  part3 = (1 / lambda_reg^2) * (gammatilde / (1 - gammatilde))^2 *
     mean(norms_row_X^2 * residuals^2)
-
-  part4 = 2 * gammatilde / (lambda_reg * (1 - gammatilde)) *
-    base::norm(x = n^(-1) * crossprod(X * residuals) %*% inverse_XXtbar,
+  
+  part4 = 2 / lambda_reg * (gammatilde / (1 - gammatilde)) *
+    base::norm(x = n^(-1) * crossprod(X * residuals) %*% inverse_XXtbar, 
                type = "2")
-
+  
   Rnvar = part1 + part2 + part3 + part4
 
   return(Rnvar)
