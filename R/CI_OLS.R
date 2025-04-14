@@ -454,6 +454,22 @@ Navae_ci_ols <- function(
 
   minimal_alpha_to_enter_Edg_regime <- 2 * nu_n_Edg_u
 
+  if (verbose >= 2){
+    cat("Minimal alpha to enter Edg regime: ", minimal_alpha_to_enter_Edg_regime)
+    cat("\n")
+    cat("Ratio length wrt asymptotic CI: ", ratio_length_wrt_ci_asymp)
+    cat("\n\n")
+  }
+
+  if (verbose >= 1){
+    cat("Classical CI obtained from the CLT: \n")
+    print(result_asymp)
+
+    cat("\n NAVAE CI: \n")
+    print(result)
+    cat("\n")
+  }
+
   return(list(ci_navae = result,
               ci_asymp = result_asymp,
               allBounds = allBounds,
@@ -465,7 +481,7 @@ Navae_ci_ols <- function(
               Rnlin_u = Rnlin_u,
               Rnvar_u = Rnvar_u,
               Rnvar_u_times_norm_u_squared = Rnvar_u_times_norm_u_squared,
-              minimal_alpha_to_enter_Edg_regime = minimal_alpha_to_enter_Edg_regime))a
+              minimal_alpha_to_enter_Edg_regime = minimal_alpha_to_enter_Edg_regime))
 }
 
 # Auxiliary functions ----------------------------------------------------------
