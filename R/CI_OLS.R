@@ -139,7 +139,9 @@ Navae_ci_ols <- function(
   # Estimation of crossproducts and other useful matrices
   XXt <- base::crossprod(X)
   XXtbar <- (1/n) * XXt # shortcut notation "S" in the article.
-  minvpXXtbar <- min(eigen(XXtbar, only.values = TRUE)$values) # plug-in \hat{\lambda_{reg}} in the article.
+
+  # plug-in \hat{\lambda_{reg}} in the article.
+  minvpXXtbar <- min(eigen(XXtbar, only.values = TRUE)$values)
   inverse_XXt <- solve(XXt)
   inverse_XXtbar <- n * inverse_XXt
   inverse_sqrt_XXtbar <- expm::sqrtm(inverse_XXtbar) # Estimate of E(XX')^{-1/2}
@@ -170,7 +172,8 @@ Navae_ci_ols <- function(
   } else {
     stopifnot((is.numeric(power_of_n_for_b)) && length(power_of_n_for_b) == 1)
     if ((power_of_n_for_b > 0) || (power_of_n_for_b <= -1/2)) {
-      warning("The choice of 'power_of_n_for_b' does not satisfy the requirements for asymptotic properties of the resulting CI.")
+      warning("The choice of 'power_of_n_for_b' does not satisfy the ",
+              "requirements for asymptotic properties of the resulting CI.")
     }
   }
   if (is.null(a)) {
@@ -184,7 +187,8 @@ Navae_ci_ols <- function(
   } else {
     stopifnot((is.numeric(power_of_n_for_omega)) && length(power_of_n_for_omega) == 1)
     if ((power_of_n_for_omega > 0) || (power_of_n_for_omega <= -2/3)) {
-      warning("The choice of 'power_of_n_for_omega' does not satisfy the requirements for asymptotic properties of the resulting CI.")
+      warning("The choice of 'power_of_n_for_omega' does not satisfy the ",
+              "requirements for asymptotic properties of the resulting CI.")
     }
   }
   if (is.null(omega)) {
@@ -267,7 +271,8 @@ Navae_ci_ols <- function(
   }
 
   # Bound B and C (used when options$bounded_case is TRUE)
-  # (used for Bernstein concentration of square matrices, applied to A = X_i tilde X_i tilde')
+  # (used for Bernstein concentration of square matrices
+  # applied to A = X_i tilde X_i tilde')
 
   if (is.null(bounds$C)) {
     bound_C_method <- "plug-in"
@@ -295,7 +300,7 @@ Navae_ci_ols <- function(
   }
 
 
-  # 5- Computing concentration, Rlin, Rnvar ==================================================
+  # 5- Computing concentration, Rlin, Rnvar ====================================
 
   # Computation of delta
   delta = alpha * omega / 2
@@ -303,7 +308,8 @@ Navae_ci_ols <- function(
   # in the article: omega_n alpha / 2.
 
   # Concentration of XXt
-  # quantity called gammat_tilde as of now in the paper, in the baseline case (when we do not assume bounded X).
+  # quantity called gammat_tilde as of now in the paper,
+  # in the baseline case (when we do not assume bounded X).
   concentr_XXtranspose = Compute_concentrationXXt(
     bounded_case = options$bounded_case, bounds = bounds,
     n = n, d = ncol(X), delta = delta)
@@ -319,7 +325,7 @@ Navae_ci_ols <- function(
     concentr_XXtranspose = concentr_XXtranspose,
     X = X, inverse_XXtbar = inverse_XXtbar, matrix_u = matrix_u)
 
-  # 6- Computing the standard asymptotic CIs ==============================================================
+  # 6- Computing the standard asymptotic CIs ===================================
   # In order to compare (and used in the simulation)
 
   result_asymp = matrix(nrow = number_u, ncol = 3)
@@ -331,7 +337,8 @@ Navae_ci_ols <- function(
   result_asymp[, 2] = OLSestimate_u + CIs.Asymp.extend
   result_asymp[, 3] = 2 * CIs.Asymp.extend
 
-  # 7- Preparing the final matrix with our CI and first case of R regime (R1) ============================================================
+  # 7- Preparing the final matrix with our CI ==================================
+  # and first case of R regime (R1)
 
   result = matrix(nrow = number_u, ncol = 5)
   colnames(result) <- c("lower", "upper", "regime", "estimate", "length")
@@ -352,7 +359,7 @@ Navae_ci_ols <- function(
 
   }
 
-  # 8- Computation of the bound delta_n ===============================================================
+  # 8- Computation of the bound delta_n ========================================
 
   param_BE_EE$setup$iid = TRUE # we always consider the iid framework
 
@@ -425,7 +432,7 @@ Navae_ci_ols <- function(
 
   }
 
-  # 9- Computing parts of our CI ===============================================================
+  # 9- Computing parts of our CI ===============================================
 
   nu_n_Exp_u = OLS.Nu_nExp(alpha = alpha, omega = omega, a = a,
                            K_xi = bounds$K_xi_u, n = n)
@@ -436,7 +443,7 @@ Navae_ci_ols <- function(
 
   nu_n_Approx_u = Rnlin_u / sqrt(bound_Voracle)
 
-  # 10- Determining the regime, with or without regime Exp, for each u ===============================================================
+  # 10- Determining the regime, with or without regime Exp, for each u =========
 
   if (options$with_Exp_regime) {
 
@@ -455,9 +462,10 @@ Navae_ci_ols <- function(
 
   }
 
-  # 11- Constructing our CI ===============================================================
+  # 11- Constructing our CI ====================================================
 
-  if (concentr_XXtranspose < 1) { # Otherwise, already in the case R1, R regime for all u.
+  if (concentr_XXtranspose < 1) {
+    # Otherwise, already in the case R1, R regime for all u.
 
     if (length(which_regime_R) > 0) {
 
