@@ -50,21 +50,7 @@
 #' Y = 3 + 8 * X1 + true_eps
 #' X = cbind(X1)
 #'
-#' myCI <- Navae_ci_ols(Y, X, alpha = 0.05, omega = 0.2, a = 2,
-#'   bounds = list(lambda_reg = 1, K_reg = 5, K_eps = 5, K_xi = 10),
-#'   setup = list(continuity = FALSE, no_skewness = FALSE) )
-#'
-#' print(myCI)
-#'
-#' myCI <- Navae_ci_ols(Y, X, alpha = 0.05, omega = 0.2, a = 2,
-#'   bounds = list(lambda_reg = 1, K_reg = 5, K_eps = 5, K_xi = 20),
-#'   setup = list(continuity = TRUE, no_skewness = TRUE) )
-#'
-#' print(myCI)
-#'
-#' myCI <- Navae_ci_ols(Y, X, alpha = 0.01, omega = 0.2, a = 2,
-#'   bounds = list(lambda_reg = 1, K_reg = 5, K_eps = 5, K_xi = 10),
-#'   setup = list(continuity = TRUE, no_skewness = TRUE) )
+#' myCI <- Navae_ci_ols(Y, X)
 #'
 #' print(myCI)
 #'
