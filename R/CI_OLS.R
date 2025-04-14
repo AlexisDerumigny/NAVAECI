@@ -302,13 +302,13 @@ Navae_ci_ols <- function(
 
   # 5- Computing concentration, Rlin, Rnvar ====================================
 
-  # Computation of delta
+  # Computation of gamma
   gamma = alpha * omega / 2
   # just a name for the value at which we will compute Rnlin and Rnvar
   # in the article: omega_n alpha / 2.
 
   # Concentration of XXt
-  # quantity called gammat_tilde as of now in the paper,
+  # quantity called gamma_tilde as of now in the paper,
   # in the baseline case (when we do not assume bounded X).
   concentr_XXtranspose = Compute_concentrationXXt(
     bounded_case = options$bounded_case, bounds = bounds,
@@ -318,12 +318,14 @@ Navae_ci_ols <- function(
     gamma = gamma, gammatilde = concentr_XXtranspose,
     bounds = bounds, matrix_u = matrix_u)
 
-  # This is in fact Rnvar multiplied by the square of the norm of u.
   Rnvar_u <- Compute_Rnvar(
     gamma = gamma, n = n, norms_row_X = norms_row_X,
     residuals = reg$residuals, bounds = bounds,
     gammatilde = concentr_XXtranspose,
     X = X, inverse_XXtbar = inverse_XXtbar, matrix_u = matrix_u)
+
+  Rnvar_u_times_norm_u_squared = Rnvar_u *
+    apply(X = matrix_u, MARGIN = 1, FUN = function(x){sum(x^2)})
 
   # 6- Computing the standard asymptotic CIs ===================================
   # In order to compare (and used in the simulation)
@@ -439,7 +441,7 @@ Navae_ci_ols <- function(
 
   nu_n_Edg_u = nu_n_Exp_u + delta_n_u
 
-  bound_Voracle <- Vhat_u + Rnvar_u
+  bound_Voracle <- Vhat_u + Rnvar_u_times_norm_u_squared
 
   nu_n_Approx_u = Rnlin_u / sqrt(bound_Voracle)
 
@@ -541,6 +543,7 @@ Navae_ci_ols <- function(
                 bound_Voracle = bound_Voracle,
                 Rnlin_u = Rnlin_u,
                 Rnvar_u = Rnvar_u,
+                Rnvar_u_times_norm_u_squared = Rnvar_u_times_norm_u_squared,
                 minimal_alpha_to_enter_Edg_regime = minimal_alpha_to_enter_Edg_regime))
 
   } else {
@@ -657,11 +660,9 @@ Compute_Rnvar <- function(
     base::norm(x = n^(-1) * crossprod(X * residuals) %*% inverse_XXtbar,
                type = "2")
 
-  Rnvar_u_times_norm_u_squared = apply(X = matrix_u, MARGIN = 1,
-                                       FUN = function(x){sum(x^2)}) *
-    (part1 + part2 + part3 + part4)
+  Rnvar = part1 + part2 + part3 + part4
 
-  return(Rnvar_u_times_norm_u_squared)
+  return(Rnvar)
 }
 
 
