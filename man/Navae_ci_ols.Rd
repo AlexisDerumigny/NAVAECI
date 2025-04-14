@@ -20,7 +20,7 @@ Navae_ci_ols(
     no_skewness = FALSE), regularity = list(C0 = 1, p = 2), eps = 0.1),
   options = list(center = FALSE, bounded_case = FALSE, with_Exp_regime = FALSE),
   matrix_u = diag(NCOL(X) + 1),
-  verbose = FALSE
+  verbose = 2
 )
 }
 \arguments{
@@ -83,19 +83,19 @@ true_eps = rnorm(n)
 Y = 3 + 8 * X1 + true_eps
 X = cbind(X1)
 
-myCI <- CI.OLS(Y, X, alpha = 0.05, omega = 0.2, a = 2,
+myCI <- Navae_ci_ols(Y, X, alpha = 0.05, omega = 0.2, a = 2,
   bounds = list(lambda_reg = 1, K_reg = 5, K_eps = 5, K_xi = 10),
   setup = list(continuity = FALSE, no_skewness = FALSE) )
 
 print(myCI)
 
-myCI <- CI.OLS(Y, X, alpha = 0.05, omega = 0.2, a = 2,
+myCI <- Navae_ci_ols(Y, X, alpha = 0.05, omega = 0.2, a = 2,
   bounds = list(lambda_reg = 1, K_reg = 5, K_eps = 5, K_xi = 20),
   setup = list(continuity = TRUE, no_skewness = TRUE) )
 
 print(myCI)
 
-myCI <- CI.OLS(Y, X, alpha = 0.01, omega = 0.2, a = 2,
+myCI <- Navae_ci_ols(Y, X, alpha = 0.01, omega = 0.2, a = 2,
   bounds = list(lambda_reg = 1, K_reg = 5, K_eps = 5, K_xi = 10),
   setup = list(continuity = TRUE, no_skewness = TRUE) )
 
