@@ -57,24 +57,24 @@
 #' @export
 #'
 Navae_ci_ols <- function(
-  Y, X,
-  alpha = 0.05,
-  a = NULL, power_of_n_for_b = NULL,
-  omega = NULL, power_of_n_for_omega = NULL,
-  bounds = list(lambda_reg = NULL,
-                K_reg = NULL,
-                K_eps = NULL,
-                K_xi = NULL,
-                C = NULL,
-                B = NULL), K_xi = NULL,
-  param_BE_EE = list(
-    choice = "best",
-    setup = list(continuity = FALSE, iid = TRUE, no_skewness = FALSE),
-    regularity = list(C0 = 1, p = 2),
-    eps = 0.1),
-  options = list(center = FALSE, bounded_case = FALSE, with_Exp_regime = FALSE),
-  matrix_u = diag(NCOL(X) + 1),
-  verbose = 2)
+    Y, X,
+    alpha = 0.05,
+    a = NULL, power_of_n_for_b = NULL,
+    omega = NULL, power_of_n_for_omega = NULL,
+    bounds = list(lambda_reg = NULL,
+                  K_reg = NULL,
+                  K_eps = NULL,
+                  K_xi = NULL,
+                  C = NULL,
+                  B = NULL), K_xi = NULL,
+    param_BE_EE = list(
+      choice = "best",
+      setup = list(continuity = FALSE, iid = TRUE, no_skewness = FALSE),
+      regularity = list(C0 = 1, p = 2),
+      eps = 0.1),
+    options = list(center = FALSE, bounded_case = FALSE, with_Exp_regime = FALSE),
+    matrix_u = diag(NCOL(X) + 1),
+    verbose = 2)
 {
 
   # 1- Checking the validity of inputs ==================================
@@ -490,7 +490,7 @@ Navae_ci_ols <- function(
 #' @noRd
 #'
 Compute_xi_u_for_one_obs_i <- function(
-  index_obs_i, dataX, inverse_XXtbar, matrix_u, residuals)
+    index_obs_i, dataX, inverse_XXtbar, matrix_u, residuals)
 {
   return( matrix_u %*%
             (inverse_XXtbar %*%
@@ -499,8 +499,8 @@ Compute_xi_u_for_one_obs_i <- function(
 
 
 OLS.CIs.Exp.extend <- function(
-  n, alpha, a, K_reg,
-  nu_n_Exp, nu_n_Approx, bound_Voracle)
+    n, alpha, a, K_reg,
+    nu_n_Exp, nu_n_Approx, bound_Voracle)
 {
 
   part1_Qn = sqrt( 2 * (1 + a) * ( 1 - log(alpha/2 - nu_n_Exp) ) )
@@ -513,8 +513,8 @@ OLS.CIs.Exp.extend <- function(
 }
 
 OLS.CIs.Edg.extend <- function(
-  n, alpha, a, K_reg,
-  nu_n_Edg, nu_n_Approx, bound_Voracle)
+    n, alpha, a, K_reg,
+    nu_n_Edg, nu_n_Approx, bound_Voracle)
 {
 
   part1_Qn = sqrt(a) * stats::qnorm(1 - alpha/2 + nu_n_Edg)
@@ -543,7 +543,7 @@ OLS.Nu_nExp <- function(alpha, omega, a, K_xi, n)
 #' (bounded support, etc.), see function Compute_concentrationXXt.
 #'
 Compute_RnLin <- function(
-  gamma, gammatilde, bounds, matrix_u)
+    gamma, gammatilde, bounds, matrix_u)
 {
   RnLin_without_norm_u <-
     sqrt(2) * (1 / sqrt(bounds$lambda_reg)) * gammatilde / (1 - gammatilde)  *
@@ -562,10 +562,10 @@ Compute_RnLin <- function(
 #' the definition of Rnvar as for Rnlin).
 #'
 Compute_Rnvar <- function(
-  gamma, n, norms_row_X, residuals,
-  bounds,
-  gammatilde,
-  X, inverse_XXtbar, matrix_u)
+    gamma, n, norms_row_X, residuals,
+    bounds,
+    gammatilde,
+    X, inverse_XXtbar, matrix_u)
 {
   lambda_reg <- bounds$lambda_reg
   K_eps <- bounds$K_eps
