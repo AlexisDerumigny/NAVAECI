@@ -303,7 +303,7 @@ Navae_ci_ols <- function(
   # 5- Computing concentration, Rlin, Rnvar ====================================
 
   # Computation of delta
-  delta = alpha * omega / 2
+  gamma = alpha * omega / 2
   # just a name for the value at which we will compute Rnlin and Rnvar
   # in the article: omega_n alpha / 2.
 
@@ -312,17 +312,17 @@ Navae_ci_ols <- function(
   # in the baseline case (when we do not assume bounded X).
   concentr_XXtranspose = Compute_concentrationXXt(
     bounded_case = options$bounded_case, bounds = bounds,
-    n = n, d = ncol(X), delta = delta)
+    n = n, d = ncol(X), gamma = gamma)
 
   Rnlin_u <- Compute_RnLin(
-    gamma = delta, concentr_XXtranspose = concentr_XXtranspose,
+    gamma = gamma, gammatilde = concentr_XXtranspose,
     bounds = bounds, matrix_u = matrix_u)
 
   # This is in fact Rnvar multiplied by the square of the norm of u.
   Rnvar_u <- Compute_Rnvar(
-    gamma = delta, n = n, norms_row_X = norms_row_X,
+    gamma = gamma, n = n, norms_row_X = norms_row_X,
     residuals = reg$residuals, bounds = bounds,
-    concentr_XXtranspose = concentr_XXtranspose,
+    gammatilde = concentr_XXtranspose,
     X = X, inverse_XXtbar = inverse_XXtbar, matrix_u = matrix_u)
 
   # 6- Computing the standard asymptotic CIs ===================================
@@ -611,18 +611,16 @@ OLS.Nu_nExp <- function(alpha, omega, a, K_xi, n)
 
 
 #' Function to compute R_{n, lin}(gamma) for a free variable gamma
-#' concentr_XXtranspose corresponds to the sqrt(K_reg / (n * gamma))
+#' gammatilde corresponds to the sqrt(K_reg / (n * gamma))
 #' in the paper.
 #' It is possible to sharpen the concentration with additional assumptions
 #' (bounded support, etc.), see function Compute_concentrationXXt.
 #'
 Compute_RnLin <- function(
-  gamma, concentr_XXtranspose, bounds, matrix_u)
+  gamma, gammatilde, bounds, matrix_u)
 {
-  cc <- concentr_XXtranspose # shortcut
-
   RnLin_without_norm_u <-
-    sqrt(2) * (1 / sqrt(bounds$lambda_reg)) * cc / (1 - cc)  *
+    sqrt(2) * (1 / sqrt(bounds$lambda_reg)) * gammatilde / (1 - gammatilde)  *
     (bounds$K_eps / gamma)^(1/4)
 
   Rnlin_u <- apply(X = matrix_u, MARGIN = 1,
@@ -640,23 +638,22 @@ Compute_RnLin <- function(
 Compute_Rnvar <- function(
   gamma, n, norms_row_X, residuals,
   bounds,
-  concentr_XXtranspose,
+  gammatilde,
   X, inverse_XXtbar, matrix_u)
 {
-  cc <- concentr_XXtranspose
   lambda_reg <- bounds$lambda_reg
   K_eps <- bounds$K_eps
 
-  part1 = (2 / (n * lambda_reg^3 * (1 - cc)^2)) *
+  part1 = (2 / (n * lambda_reg^3 * (1 - gammatilde)^2)) *
     sqrt(K_eps / gamma) * mean(norms_row_X^4)
 
-  part2 = (2 * sqrt(2) / (lambda_reg^(5/2) * sqrt(n) * (1 - cc))) *
+  part2 = (2 * sqrt(2) / (lambda_reg^(5/2) * sqrt(n) * (1 - gammatilde))) *
     (K_eps / gamma)^(1/4) * mean(norms_row_X^3 * abs(residuals))
 
-  part3 = (cc / (lambda_reg * (1 - cc)))^2 *
+  part3 = gammatilde^2 / (lambda_reg^2 * (1 - gammatilde)^2) *
     mean(norms_row_X^2 * residuals^2)
 
-  part4 = 2 * cc / (lambda_reg * (1 - cc)) *
+  part4 = 2 * gammatilde / (lambda_reg * (1 - gammatilde)) *
     base::norm(x = n^(-1) * crossprod(X * residuals) %*% inverse_XXtbar,
                type = "2")
 
