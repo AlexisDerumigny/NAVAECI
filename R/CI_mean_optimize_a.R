@@ -19,7 +19,7 @@ curve(qnorm(x), from = 0, to = 1)
 
 
 f_to_zero_cond_R_reg <- function(a){
-  nu_n_var <- f_nu_n_var(a)
+  nu_n_var <- exp(-n*(1 - 1/a)^2 / (2*bound_K))
   return(1 - alpha/2 + delta_n + nu_n_var/2 - pnorm(sqrt(n / a)))
 }
 
@@ -28,15 +28,16 @@ f_nu_n_var <- function(a){
 }
 
 # Choice K, n, alpha
-bound_K = 3
-n = 10000
-alpha = 0.05
+bound_K = 9
+n = 700
+alpha = 0.2
 
 delta_n <- BE_bound_Shevtsova(bound_K = bound_K, n = n)
 
-curve(f_to_zero_cond_R_reg(a), from = 1, to = 2, xname = "a")
+curve(f_to_zero_cond_R_reg(a), from = 1, to = 200, xname = "a")
 
 res_root <- uniroot(f = f_to_zero_cond_R_reg, lower = 1, upper = 10)
+
 
 f_prop_width <- function(a){
   nu_n_var <- f_nu_n_var(a)
@@ -182,3 +183,59 @@ abline(a = res_lm$coefficients[[1]], b = res_lm$coefficients[[2]], col = "red")
 plot(vec_n, res_a[,4] / qnorm(1 - alpha/2))
 
 
+# Function g, to study the function ----------------------------------------------------------
+
+n <- 500
+alpha <- 0.5
+bound_K <- 10
+
+delta_n <- Get_delta_n_fixed_bound_K(n = n, bound_K = bound_K)
+
+g <- function(a) 
+{
+  nu_n_var <- exp(-n*(1 - 1/a)^2 / (2*bound_K))
+  return(1 - alpha/2 + delta_n + nu_n_var/2 - pnorm(sqrt(n / a)))
+}
+
+g_prime <- function(a)
+{
+  nu_n_var <- exp(-n*(1 - 1/a)^2 / (2*bound_K))
+  part1 <- -n / (2*bound_K) * (1 - (1/a)) / a^2 * nu_n_var
+  part2 <- sqrt(n) / 2 * (1 / (a * sqrt(a))) * dnorm(sqrt(n / a))
+  return(part1 + part2)
+}
+
+g_prime_Alexis <- function(a)
+{
+  nu_n_var <- exp(-n*(1 - 1/a)^2 / (2*bound_K))
+  return(n / (2*bound_K) * (a - 1) * nu_n_var - dnorm(sqrt(n / a)))
+}
+
+g_prime_numeric <- function(a, h = 0.000001)
+{
+  return((g(a + h) - g(a)) / h)
+}
+
+lim_at_plusinf_g <- 1/2 - alpha/2 + delta_n + exp(-n / (2*bound_K))/2
+lim_at_one_g <- 1/2 - alpha/2 + delta_n
+
+curve(g(a), from = 1, to = 1000, xname = "a")
+
+g(1)
+g(1 + 10^(-3))
+g(1.4)
+g(100)
+lim_at_plusinf_g
+
+curve(g_prime(a), from = 1, to = 100, xname = "a")
+
+ylim_choice <- 0.01
+curve(g_prime(a), from = 1, to = 200, xname = "a",
+      ylim = c(-ylim_choice, ylim_choice))
+
+eval_at <- 10.3
+g_prime_numeric(eval_at)
+g_prime(eval_at)
+g_prime_Alexis(eval_at)
+
+curve(g(a), from = 1, to = 100*n, xname = "a")
