@@ -127,7 +127,8 @@
 #
 Navae_ci_mean <- function(
   data, alpha = 0.05,
-  a = NULL, power_of_n_for_b = NULL,
+  a = NULL, power_of_n_for_b = NULL, 
+  optimize_in_a = FALSE, max_a_tested_for_optim = 50,
   bound_K = NULL, known_variance = NULL,
   param_BE_EE = list(
     choice = "best",
@@ -137,7 +138,7 @@ Navae_ci_mean <- function(
   na.rm = FALSE, verbose = FALSE)
 {
 
-  # 1- Checks on data and computation of empirical mean and variance ----
+  # 1- Checks on data and computation of empirical mean and variance -----------
 
   if (!is.vector(data, mode = "numeric")) {
     stop("'data' must be a numeric vector.")
@@ -157,45 +158,29 @@ Navae_ci_mean <- function(
   xi_bar <- mean(xi)
   sigma_hat <- sqrt(stats::var(xi))
 
-  # 2- Determination of the free parameter a_n ----
-
-  if (is.null(power_of_n_for_b)) {
-    power_of_n_for_b <- -2/5
-  } else {
-    stopifnot((is.numeric(power_of_n_for_b)) && length(power_of_n_for_b) == 1)
-    if ((power_of_n_for_b > 0) || (power_of_n_for_b <= -1/2)) {
-      warning("The choice of 'power_of_n_for_b' does not satisfy the requirements for asymptotic properties of the resulting CI.")
-    }
-  }
-
-  if (is.null(a)) {
-    b_n <- n^power_of_n_for_b
-    a <- 1 + b_n
-  }
-
-  # 3- Determination of the bound K and the bound delta_n ----
-
+  # 2- Determination of the bound K and the bound delta_n ----------------------
+  
   if (is.null(bound_K)) {
     bound_K_method <- "plug-in"
     bound_K <- Empirical_kurtosis(xi = xi, xi_bar = xi_bar, sigma_hat = sigma_hat)
   } else {
     bound_K_method <- "bound"
   }
-
+  
   delta_n_BE <- BE_bound_Shevtsova(bound_K = bound_K, n = n)
-
+  
   if (is.vector(param_BE_EE, mode = "character") && (param_BE_EE == "BE")) {
-
+    
     delta_n <- delta_n_BE; delta_n_from <- "BE"
-
+    
   } else {
-
+    
     delta_n_EE <- BoundEdgeworth::Bound_EE1(
       setup = param_BE_EE$setup,
       regularity = param_BE_EE$regularity,
       eps = param_BE_EE$eps, n = n,
       K4 = bound_K, K3 = NULL, lambda3 = NULL, K3tilde = NULL)
-
+    
     if (param_BE_EE$choice == "best") {
       if (delta_n_BE < delta_n_EE) {
         delta_n <- delta_n_BE; delta_n_from <- "BE"
@@ -208,15 +193,67 @@ Navae_ci_mean <- function(
       stop("Invalid specification of the argument 'param_BE_EE$choice'.")
     }
   }
+  
+  # 3- Determination of the free parameter a_n ---------------------------------
 
-  # 4- Computation of our CI ----
+  if (optimize_in_a) {
+    
+    if (is.null(bound_K_method == "plug-in")) {
+      warning("Optimization in a is performed while using plug-in.")
+    }
+    
+    res_optimal_a <- Get_optimal_a(
+      n = n, bound_K = bound_K, alpha = alpha, delta_n = delta_n,
+      max_a_tested_for_optim = max_a_tested_for_optim)
+    
+    cannot_find_a_to_exit_R_regime <- res_optimal_a$cannot_find_a_to_exit_R_regime
+    minimal_a_to_exit_R_regime <- res_optimal_a$minimal_a_to_exit_R_regime
+    optimal_a_to_minimize_width <- res_optimal_a$optimal_a_to_minimize_width
+    optimal_width_up_to_sigmahat_sqrtn <- res_optimal_a$optimal_width_up_to_sigmahat_sqrtn
+    
+    if (is.na(optimal_a_to_minimize_width)) {
+      warning("Optimization in a failed; default choice for a is used.")
+      optimized_a_is_used <- FALSE
+    } else {
+      optimized_a_is_used <- TRUE
+      a <- optimal_a_to_minimize_width
+      b_n <- a - 1
+    }
+    
+  }
+  
+  if (isFALSE(optimize_in_a) || isFALSE(optimized_a_is_used)) {
+    
+    optimized_a_is_used <- FALSE
+    cannot_find_a_to_exit_R_regime <- NA
+    minimal_a_to_exit_R_regime <- NA
+    optimal_a_to_minimize_width <- NA
+    optimal_width_up_to_sigmahat_sqrtn <- NA
+    
+    if (is.null(power_of_n_for_b)) {
+      power_of_n_for_b <- -2/5
+    } else {
+      stopifnot((is.numeric(power_of_n_for_b)) && length(power_of_n_for_b) == 1)
+      if ((power_of_n_for_b > 0) || (power_of_n_for_b <= -1/2)) {
+        warning("The choice of 'power_of_n_for_b' does not satisfy the requirements for asymptotic properties of the resulting CI.")
+      }
+    }
+    
+    if (is.null(a)) {
+      b_n <- n^power_of_n_for_b
+      a <- 1 + b_n
+    }
+
+  }
+  
+  # 4- Computation of our CI ---------------------------------------------------
 
   if (is.null(known_variance)) {
 
-    # 4a- CI in the general case with unknown variance ----
+    # 4a- CI in the general case with unknown variance -------------------------
 
-    nu_n_var <- exp(-n*(1 - 1/a)^2 / (2*bound_K))
-
+    nu_n_var <- Compute_nu_n_var(n = n, a = a, bound_K = bound_K)
+    
     arg_modif_quant <- 1 - alpha/2 + delta_n + nu_n_var/2
 
     indicator_R_regime <- arg_modif_quant >= stats::pnorm(sqrt(n / a))
@@ -233,14 +270,14 @@ Navae_ci_mean <- function(
 
       q <- stats::qnorm(arg_modif_quant)
       C_n <- 1 / sqrt(1/a - (1/n) * q^2)
-      half_length <- sigma_hat/sqrt(n) * C_n * q
+      half_length <- sigma_hat * C_n * q / sqrt(n)
       ci <- xi_bar + c(-1, 1) * half_length
       ratio_length_wrt_CLT <- C_n * q / stats::qnorm(1 - alpha/2)
     }
 
   } else {
 
-    # 4b- CI in the particular case with known variance ----
+    # 4b- CI in the particular case with known variance ------------------------
 
     if ((!is.numeric(known_variance)) || (length(known_variance) > 1)) {
       stop("Argument 'known_variance' must be a scalar numeric vector.")
@@ -262,17 +299,22 @@ Navae_ci_mean <- function(
       q <- stats::qnorm(arg_modif_quant)
       half_length <- sqrt(known_variance) * q / sqrt(n)
       ci <- xi_bar + c(-1, 1) * half_length
-      ratio_length_wrt_CLT <- (q / stats::qnorm(1 - alpha/2)) * (sqrt(known_variance) / sigma_hat)
+      ratio_length_wrt_CLT <- q / stats::qnorm(1 - alpha/2)
     }
 
   }
 
-  # 5- Output ----
+  # 5- Output ------------------------------------------------------------------
 
   if (verbose) {
 
     # Comparison with usual "asymptotic" CI (based on CLT + Slutsky)
-    half_length_CLT <- sigma_hat/sqrt(n) * stats::qnorm(1 - alpha/2)
+    if (is.null(known_variance)) {
+      sigma_used_for_CLT <- sigma_hat
+    } else {
+      sigma_used_for_CLT <- sqrt(known_variance)
+    }
+    half_length_CLT <- sigma_used_for_CLT * stats::qnorm(1 - alpha/2) / sqrt(n)
     ci_CLT <- xi_bar + c(-1, 1) * half_length_CLT
 
     return(list(ci = ci,
@@ -284,13 +326,26 @@ Navae_ci_mean <- function(
                 arg_modif_quant = arg_modif_quant,
                 minimal_alpha_to_exit_R_regime = minimal_alpha_to_exit_R_regime,
                 bound_K_method = bound_K_method,
-                bound_K_value = bound_K))
+                bound_K_value = bound_K,
+                a = a,
+                b_n = b_n,
+                optimized_a_is_used = optimized_a_is_used,
+                cannot_find_a_to_exit_R_regime = cannot_find_a_to_exit_R_regime,
+                minimal_a_to_exit_R_regime = minimal_a_to_exit_R_regime,
+                optimal_a_to_minimize_width = optimal_a_to_minimize_width,
+                optimal_width_up_to_sigmahat_sqrtn = optimal_width_up_to_sigmahat_sqrtn))
+    
   } else {
     return(ci)
   }
 }
 
 # Auxiliary functions ----------------------------------------------------------
+
+Compute_nu_n_var <- function(n, a, bound_K)
+{
+  return(exp(-n*(1 - 1/a)^2 / (2*bound_K)))  
+}
 
 Empirical_kurtosis <- function(xi, xi_bar, sigma_hat)
 {
@@ -302,3 +357,64 @@ BE_bound_Shevtsova <- function(bound_K, n)
   constant_BE_iid <- 0.4690
   return(constant_BE_iid * bound_K^(3/4) / sqrt(n))
 }
+
+Get_optimal_a <- function(
+  n, bound_K, alpha, delta_n,
+  max_a_tested_for_optim = 50)
+{
+  
+  # Step 1: find the region to exit R regime
+  
+  f_R_regime_if_non_negative <- function(a) {
+    nu_n_var <- Compute_nu_n_var(n = n, a = a, bound_K = bound_K)
+    return(1 - alpha/2 + delta_n + nu_n_var/2 - stats::pnorm(sqrt(n / a)))
+  }
+  
+  # Check if the set of a exiting R regime is empty or not
+  res_optim_condition_R_regime <- optimise(
+    f = f_R_regime_if_non_negative, 
+    lower = 1, upper = max_a_tested_for_optim)
+  
+  if (res_optim_condition_R_regime$objective >= 0) {
+    warning("Optimization in a: cannot find a to exit R regime.")
+    return(list(cannot_find_a_to_exit_R_regime = TRUE,
+                minimal_a_to_exit_R_regime = NA,
+                optimal_a_to_minimize_width = NA))
+  }
+  
+  res_uniroot_condition_R_regime <- uniroot(
+    f = f_R_regime_if_non_negative, 
+    lower = 1, upper = res_optim_condition_R_regime$minimum)
+  
+  minimal_a_to_exit_R_regime <- res_uniroot_condition_R_regime$root
+  
+  # Step 2: minimize the width within the relevant set of a exiting R regime
+  
+  f_CI_width_up_to_sigmahat_sqrtn <- function(a) {
+    nu_n_var <- Compute_nu_n_var(n = n, a = a, bound_K = bound_K)
+    arg_modif_quant <- 1 - alpha/2 + delta_n + nu_n_var/2
+    q <- stats::qnorm(arg_modif_quant)
+    C_n <- 1 / sqrt(1/a - (1/n) * q^2)
+    return(C_n * q)
+  }
+  
+  res_optim_CI_width <- optimise(
+    f = f_CI_width_up_to_sigmahat_sqrtn, 
+    lower = minimal_a_to_exit_R_regime, upper = max_a_tested_for_optim)
+  optimal_a_to_minimize_width <- res_optim_CI_width$minimum
+  optimal_width_up_to_sigmahat_sqrtn <- res_optim_CI_width$objective
+  
+  # Check we find a relevant a, i.e., exiting R regime 
+  if (f_R_regime_if_non_negative(optimal_a_to_minimize_width) >= 0) {
+    warning("Optimization in a: failure, the a found does not exit the R regime.")
+    return(list(cannot_find_a_to_exit_R_regime = FALSE,
+                minimal_a_to_exit_R_regime = NA,
+                optimal_a_to_minimize_width = NA))
+  }
+  
+  return(list(cannot_find_a_to_exit_R_regime = FALSE,
+              minimal_a_to_exit_R_regime = minimal_a_to_exit_R_regime,
+              optimal_a_to_minimize_width = optimal_a_to_minimize_width,
+              optimal_width_up_to_sigmahat_sqrtn = optimal_width_up_to_sigmahat_sqrtn))
+}
+
