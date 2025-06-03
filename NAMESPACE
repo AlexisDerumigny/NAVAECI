@@ -2,4 +2,3 @@
 
 export(Navae_ci_mean)
 export(Navae_ci_ols)
-export(OLS.Nu_nExp)

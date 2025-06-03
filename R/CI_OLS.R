@@ -547,7 +547,7 @@ OLS.CIs.Edg.extend <- function(
 
 #' Computation of nu_nExp
 #'
-#' @export
+#' @noRd
 OLS.Nu_nExp <- function(alpha, omega, a, K_xi, n)
 {
   result = (omega * alpha + exp(-n * (1 - 1/a)^2 / (2 * K_xi) ) ) / 2
@@ -581,6 +581,7 @@ Compute_RnLin <- function(
 #' used multiplied by ||u||^2 (equivalently, the part ||u||^2 could be put in
 #' the definition of Rnvar as for Rnlin).
 #'
+#' @noRd
 Compute_Rnvar <- function(
     gamma, n, norms_row_X, residuals,
     bounds,
