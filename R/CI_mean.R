@@ -200,7 +200,7 @@ Navae_ci_mean <- function(
     properties_optimal_a <- Get_optimal_a(
       n = n, bound_K = bound_K, alpha = alpha, delta_n = delta_n)
 
-    if (is.na(optimal_a_to_minimize_width)) {
+    if (is.na(properties_optimal_a$optimal_a_to_minimize_width)) {
       warning("Optimization in a failed; default choice for a is used.")
 
       # In this case, we revert to a default choice of a since the optimization
