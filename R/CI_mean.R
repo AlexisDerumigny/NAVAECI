@@ -226,9 +226,13 @@ Navae_ci_mean <- function(
     if (is.null(power_of_n_for_b)) {
       power_of_n_for_b <- -2/5
     } else {
-      stopifnot((is.numeric(power_of_n_for_b)) && length(power_of_n_for_b) == 1)
+      if (!is.numeric(power_of_n_for_b) || (length(power_of_n_for_b) != 1)){
+        stop("`power_of_n_for_b` must be a numeric vector of length 1. ",
+             "Here it is: ", power_of_n_for_b)
+      }
       if ((power_of_n_for_b > 0) || (power_of_n_for_b <= -1/2)) {
-        warning("The choice of 'power_of_n_for_b' does not satisfy the requirements for asymptotic properties of the resulting CI.")
+        warning("The choice of 'power_of_n_for_b' does not satisfy the ",
+                "requirements for asymptotic properties of the resulting CI.")
       }
     }
     
