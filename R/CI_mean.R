@@ -197,11 +197,7 @@ Navae_ci_mean <- function(
   # 3- Determination of the free parameter a_n ---------------------------------
 
   if (optimize_in_a) {
-    
-    if (is.null(bound_K_method == "plug-in")) {
-      warning("Optimization in a is performed while using plug-in.")
-    }
-    
+
     res_optimal_a <- Get_optimal_a(
       n = n, bound_K = bound_K, alpha = alpha, delta_n = delta_n,
       max_a_tested_for_optim = max_a_tested_for_optim)
