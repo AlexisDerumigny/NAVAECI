@@ -198,34 +198,31 @@ Navae_ci_mean <- function(
 
   if (optimize_in_a) {
 
-    res_optimal_a <- Get_optimal_a(
+    properties_optimal_a <- Get_optimal_a(
       n = n, bound_K = bound_K, alpha = alpha, delta_n = delta_n,
       max_a_tested_for_optim = max_a_tested_for_optim)
-    
-    cannot_find_a_to_exit_R_regime <- res_optimal_a$cannot_find_a_to_exit_R_regime
-    minimal_a_to_exit_R_regime <- res_optimal_a$minimal_a_to_exit_R_regime
-    optimal_a_to_minimize_width <- res_optimal_a$optimal_a_to_minimize_width
-    optimal_width_up_to_sigmahat_sqrtn <- res_optimal_a$optimal_width_up_to_sigmahat_sqrtn
-    
+
     if (is.na(optimal_a_to_minimize_width)) {
       warning("Optimization in a failed; default choice for a is used.")
+
+      # In this case, we revert to a default choice of a since the optimization
+      # does not work.
       optimized_a_is_used <- FALSE
+      properties_optimal_a <- list(use_optimal_a = FALSE)
     } else {
       optimized_a_is_used <- TRUE
-      a <- optimal_a_to_minimize_width
+      a <- properties_optimal_a$optimal_a_to_minimize_width
       b_n <- a - 1
     }
-    
-  }
-  
-  if (isFALSE(optimize_in_a) || isFALSE(optimized_a_is_used)) {
-    
+  } else {
     optimized_a_is_used <- FALSE
-    cannot_find_a_to_exit_R_regime <- NA
-    minimal_a_to_exit_R_regime <- NA
-    optimal_a_to_minimize_width <- NA
-    optimal_width_up_to_sigmahat_sqrtn <- NA
-    
+    properties_optimal_a <- list(use_optimal_a = FALSE)
+  }
+
+
+  if (isFALSE(optimized_a_is_used)) {
+    # Then we do the default choice of a
+
     if (is.null(power_of_n_for_b)) {
       power_of_n_for_b <- -2/5
     } else {
@@ -325,12 +322,8 @@ Navae_ci_mean <- function(
                 bound_K_value = bound_K,
                 a = a,
                 b_n = b_n,
-                optimized_a_is_used = optimized_a_is_used,
-                cannot_find_a_to_exit_R_regime = cannot_find_a_to_exit_R_regime,
-                minimal_a_to_exit_R_regime = minimal_a_to_exit_R_regime,
-                optimal_a_to_minimize_width = optimal_a_to_minimize_width,
-                optimal_width_up_to_sigmahat_sqrtn = optimal_width_up_to_sigmahat_sqrtn))
-    
+                properties_optimal_a = properties_optimal_a))
+
   } else {
     return(ci)
   }
