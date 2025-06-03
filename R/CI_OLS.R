@@ -224,7 +224,9 @@ Navae_ci_ols <- function(
   # quantity called gamma_tilde as of now in the paper,
   # in the baseline case (when we do not assume bounded X).
   concentr_XXtranspose = Compute_concentrationXXt(
-    bounded_case = options$bounded_case, bounds = bounds, delta = delta,
+    bounded_case = options$bounded_case, bounds = bounds,
+    delta = gamma, # only used for the bounded case, not present in the paper.
+                   # to be checked later.
     n = n, d = ncol(X), gamma = gamma)
 
   Rnlin_u <- Compute_RnLin(
