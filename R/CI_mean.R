@@ -381,7 +381,7 @@ Get_optimal_a <- function(n, bound_K, alpha, delta_n)
   }
 
   # Check if the set of a exiting R regime is empty or not
-  res_optim_condition_R_regime <- optim(
+  res_optim_condition_R_regime <- stats::optim(
     f = f_R_regime_if_non_negative,
     lower = 1, upper = Inf,
     method = "L-BFGS-B",
@@ -410,7 +410,7 @@ Get_optimal_a <- function(n, bound_K, alpha, delta_n)
   # We try to find a_1, which is the smallest value of a such that we enter the
   # R regime. This is the zero of the function f_R_regime_if_non_negative that
   # is at the left of the current minimum.
-  res_uniroot_a_1 <- uniroot(
+  res_uniroot_a_1 <- stats::uniroot(
     f = f_R_regime_if_non_negative,
     lower = 1, upper = res_optim_condition_R_regime$par)
 
@@ -421,7 +421,7 @@ Get_optimal_a <- function(n, bound_K, alpha, delta_n)
 
   while(try_find_a_2){
     res_uniroot_a_2  <- tryCatch(
-      uniroot(f = f_R_regime_if_non_negative,
+      stats::uniroot(f = f_R_regime_if_non_negative,
               # We do not start at 1 if not we may find the other root a_1 again (!)
               lower = res_optim_condition_R_regime$par,
               upper = max_a_tested_for_optim),
@@ -451,7 +451,7 @@ Get_optimal_a <- function(n, bound_K, alpha, delta_n)
     return(C_n * q)
   }
 
-  res_optim_CI_width <- optimize(
+  res_optim_CI_width <- stats::optimize(
     f = f_CI_width_up_to_sigmahat_sqrtn,
     lower = a_1, upper = a_2)
 

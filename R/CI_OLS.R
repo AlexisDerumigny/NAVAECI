@@ -224,7 +224,7 @@ Navae_ci_ols <- function(
   # quantity called gamma_tilde as of now in the paper,
   # in the baseline case (when we do not assume bounded X).
   concentr_XXtranspose = Compute_concentrationXXt(
-    bounded_case = options$bounded_case, bounds = bounds,
+    bounded_case = options$bounded_case, bounds = bounds, delta = delta,
     n = n, d = ncol(X), gamma = gamma)
 
   Rnlin_u <- Compute_RnLin(
@@ -587,36 +587,36 @@ Compute_Rnvar <- function(
   lambda_reg <- bounds$lambda_reg
   K_eps <- bounds$K_eps
 
-  
+
   part1 = 2 / (n * lambda_reg^3) *
     (gammatilde / (1 - gammatilde) + 1)^2 *
     sqrt(K_eps / gamma) *
     mean(norms_row_X^4)
-  
+
   part2 = 2 * sqrt(2) / (lambda_reg^(5/2) * sqrt(n)) *
     (gammatilde / (1 - gammatilde) + 1) *
     (K_eps / gamma)^(1/4) *
     mean(norms_row_X^3 * abs(residuals))
-  
+
   part3 = (1 / lambda_reg^2) * (gammatilde / (1 - gammatilde))^2 *
     mean(norms_row_X^2 * residuals^2)
-  
+
   part4 = 2 / lambda_reg * (gammatilde / (1 - gammatilde)) *
-    base::norm(x = n^(-1) * crossprod(X * residuals) %*% inverse_XXtbar, 
+    base::norm(x = n^(-1) * crossprod(X * residuals) %*% inverse_XXtbar,
                type = "2")
-  
+
   Rnvar = part1 + part2 + part3 + part4
 
   return(Rnvar)
 }
 
 
-Compute_concentrationXXt <- function(bounded_case, bounds, n, d, gamma)
+Compute_concentrationXXt <- function(bounded_case, bounds, delta, n, d, gamma)
 {
   if (bounded_case){
     # Concentration of XX transpose, assuming bounded regressors
 
-    concentr_XXtranspose = concentration_Bernstein(
+    concentr_XXtranspose = Compute_concentration_Bernstein(
       B = bounds$B, C = bounds$C, delta = delta, n = n, d = d)
 
   } else {
@@ -766,7 +766,7 @@ computeBounds <- function(env, verbose = 2)
     # E[A] = E[X_i tilde X_i tilde'] = identity matrix of size p
     expectation_A = diag(env$p)
     B_before_norm = 0
-    for (i in 1:n) {
+    for (i in 1:env$n) {
       A_i = matrix(env$list_Xtilde_i[[i]]) %*% t(matrix(env$list_Xtilde_i[[i]]))
       # Computation of (A - E(A))(A - E(A))
       A_mEA_sq = (A_i - expectation_A) %*% (A_i - expectation_A)
