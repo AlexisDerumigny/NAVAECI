@@ -10,6 +10,7 @@ Navae_ci_mean(
   alpha = 0.05,
   a = NULL,
   power_of_n_for_b = NULL,
+  optimize_in_a = FALSE,
   bound_K = NULL,
   known_variance = NULL,
   param_BE_EE = list(choice = "best", setup = list(continuity = FALSE, iid = TRUE,
