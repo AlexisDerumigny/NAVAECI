@@ -349,6 +349,27 @@ BE_bound_Shevtsova <- function(bound_K, n)
   return(constant_BE_iid * bound_K^(3/4) / sqrt(n))
 }
 
+
+#' Find the optimal a
+#'
+#'
+#' @param n sample size
+#' @param bound_K bound on the kurtosis
+#' @param alpha confidence level
+#' @param delta_n value of the bound $delta_n$ from Berry-Esseen or
+#' first-order Edgeworth expansion.
+#'
+#' @examples
+#' # Does not find any value of a
+#' Get_optimal_a(n = 10000, bound_K = 9, alpha = 0.05,
+#'               delta_n = BoundEdgeworth::Bound_EE1(n = 10000) )
+#'
+#' # Find something
+#' Get_optimal_a(n = 100000, bound_K = 9, alpha = 0.05,
+#'               delta_n = BoundEdgeworth::Bound_EE1(n = 100000) )
+#'
+#'
+#' @noRd
 Get_optimal_a <- function(n, bound_K, alpha, delta_n)
 {
 
@@ -367,45 +388,79 @@ Get_optimal_a <- function(n, bound_K, alpha, delta_n)
     par = 1 + n^(-1/5) # Initial value of the optimizer
   )
 
-  if (res_optim_condition_R_regime$objective >= 0) {
-    warning("Optimization in a: cannot find a to exit R regime.")
+  if (res_optim_condition_R_regime$convergence > 0) {
+    warning("Optimization in a: cannot find a to exit R regime. ",
+            res_optim_condition_R_regime$message)
+
     return(list(cannot_find_a_to_exit_R_regime = TRUE,
                 minimal_a_to_exit_R_regime = NA,
-                optimal_a_to_minimize_width = NA))
+                optimal_a_to_minimize_width = NA,
+                res_optim_condition_R_regime = res_optim_condition_R_regime))
   }
 
-  res_uniroot_condition_R_regime <- uniroot(
-    f = f_R_regime_if_non_negative,
-    lower = 1, upper = res_optim_condition_R_regime$minimum)
+  if (res_optim_condition_R_regime$value > 0) {
+    warning("Optimization in a: cannot find a to exit R regime.")
 
-  minimal_a_to_exit_R_regime <- res_uniroot_condition_R_regime$root
+    return(list(cannot_find_a_to_exit_R_regime = TRUE,
+                minimal_a_to_exit_R_regime = NA,
+                optimal_a_to_minimize_width = NA,
+                res_optim_condition_R_regime = res_optim_condition_R_regime))
+  }
+
+  # We try to find a_1, which is the smallest value of a such that we enter the
+  # R regime. This is the zero of the function f_R_regime_if_non_negative that
+  # is at the left of the current minimum.
+  res_uniroot_a_1 <- uniroot(
+    f = f_R_regime_if_non_negative,
+    lower = 1, upper = res_optim_condition_R_regime$par)
+
+  a_1 <- res_uniroot_a_1$root
+
+  try_find_a_2 <- TRUE
+  max_a_tested_for_optim = 100 * a_1
+
+  while(try_find_a_2){
+    res_uniroot_a_2  <- tryCatch(
+      uniroot(f = f_R_regime_if_non_negative,
+              # We do not start at 1 if not we may find the other root a_1 again (!)
+              lower = res_optim_condition_R_regime$par,
+              upper = max_a_tested_for_optim),
+      error = function(e) e
+    )
+    if (inherits(res_uniroot_a_2, "error")){
+      max_a_tested_for_optim = 1000 * max_a_tested_for_optim
+      if (max_a_tested_for_optim == Inf){
+        try_find_a_2 = FALSE
+        a_2 = Inf
+      }
+    } else {
+      a_2 = res_uniroot_a_2$root
+      try_find_a_2 = FALSE
+    }
+  }
 
   # Step 2: minimize the width within the relevant set of a exiting R regime
 
   f_CI_width_up_to_sigmahat_sqrtn <- function(a) {
     nu_n_var <- Compute_nu_n_var(n = n, a = a, bound_K = bound_K)
     arg_modif_quant <- 1 - alpha/2 + delta_n + nu_n_var/2
+    # cat("a = ", a, "\n")
+    # cat("arg_modif_quant = ", arg_modif_quant, "\n\n")
     q <- stats::qnorm(arg_modif_quant)
     C_n <- 1 / sqrt(1/a - (1/n) * q^2)
     return(C_n * q)
   }
 
-  res_optim_CI_width <- optimise(
+  res_optim_CI_width <- optimize(
     f = f_CI_width_up_to_sigmahat_sqrtn,
-    lower = minimal_a_to_exit_R_regime, upper = max_a_tested_for_optim)
+    lower = a_1, upper = a_2)
+
   optimal_a_to_minimize_width <- res_optim_CI_width$minimum
   optimal_width_up_to_sigmahat_sqrtn <- res_optim_CI_width$objective
 
-  # Check we find a relevant a, i.e., exiting R regime
-  if (f_R_regime_if_non_negative(optimal_a_to_minimize_width) >= 0) {
-    warning("Optimization in a: failure, the a found does not exit the R regime.")
-    return(list(cannot_find_a_to_exit_R_regime = FALSE,
-                minimal_a_to_exit_R_regime = NA,
-                optimal_a_to_minimize_width = NA))
-  }
-
   return(list(cannot_find_a_to_exit_R_regime = FALSE,
-              minimal_a_to_exit_R_regime = minimal_a_to_exit_R_regime,
+              minimal_a_to_exit_R_regime = a_1,
+              maximal_a_to_exit_R_regime = a_2,
               optimal_a_to_minimize_width = optimal_a_to_minimize_width,
               optimal_width_up_to_sigmahat_sqrtn = optimal_width_up_to_sigmahat_sqrtn))
 }
