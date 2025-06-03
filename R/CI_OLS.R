@@ -559,6 +559,7 @@ OLS.Nu_nExp <- function(alpha, omega, a, K_xi, n)
 #' It is possible to sharpen the concentration with additional assumptions
 #' (bounded support, etc.), see function Compute_concentrationXXt.
 #'
+#' @noRd
 Compute_RnLin <- function(
     gamma, gammatilde, bounds, matrix_u)
 {
