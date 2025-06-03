@@ -127,8 +127,7 @@
 #
 Navae_ci_mean <- function(
   data, alpha = 0.05,
-  a = NULL, power_of_n_for_b = NULL, 
-  optimize_in_a = FALSE, max_a_tested_for_optim = 50,
+  a = NULL, power_of_n_for_b = NULL, optimize_in_a = FALSE,
   bound_K = NULL, known_variance = NULL,
   param_BE_EE = list(
     choice = "best",
@@ -351,9 +350,7 @@ BE_bound_Shevtsova <- function(bound_K, n)
   return(constant_BE_iid * bound_K^(3/4) / sqrt(n))
 }
 
-Get_optimal_a <- function(
-  n, bound_K, alpha, delta_n,
-  max_a_tested_for_optim = 50)
+Get_optimal_a <- function(n, bound_K, alpha, delta_n)
 {
   
   # Step 1: find the region to exit R regime
@@ -364,10 +361,13 @@ Get_optimal_a <- function(
   }
   
   # Check if the set of a exiting R regime is empty or not
-  res_optim_condition_R_regime <- optimise(
-    f = f_R_regime_if_non_negative, 
-    lower = 1, upper = max_a_tested_for_optim)
-  
+  res_optim_condition_R_regime <- optim(
+    f = f_R_regime_if_non_negative,
+    lower = 1, upper = Inf,
+    method = "L-BFGS-B",
+    par = 1 + n^(-1/5) # Initial value of the optimizer
+  )
+
   if (res_optim_condition_R_regime$objective >= 0) {
     warning("Optimization in a: cannot find a to exit R regime.")
     return(list(cannot_find_a_to_exit_R_regime = TRUE,
