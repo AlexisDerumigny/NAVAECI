@@ -158,28 +158,28 @@ Navae_ci_mean <- function(
   sigma_hat <- sqrt(stats::var(xi))
 
   # 2- Determination of the bound K and the bound delta_n ----------------------
-  
+
   if (is.null(bound_K)) {
     bound_K_method <- "plug-in"
     bound_K <- Empirical_kurtosis(xi = xi, xi_bar = xi_bar, sigma_hat = sigma_hat)
   } else {
     bound_K_method <- "bound"
   }
-  
+
   delta_n_BE <- BE_bound_Shevtsova(bound_K = bound_K, n = n)
-  
+
   if (is.vector(param_BE_EE, mode = "character") && (param_BE_EE == "BE")) {
-    
+
     delta_n <- delta_n_BE; delta_n_from <- "BE"
-    
+
   } else {
-    
+
     delta_n_EE <- BoundEdgeworth::Bound_EE1(
       setup = param_BE_EE$setup,
       regularity = param_BE_EE$regularity,
       eps = param_BE_EE$eps, n = n,
       K4 = bound_K, K3 = NULL, lambda3 = NULL, K3tilde = NULL)
-    
+
     if (param_BE_EE$choice == "best") {
       if (delta_n_BE < delta_n_EE) {
         delta_n <- delta_n_BE; delta_n_from <- "BE"
@@ -192,14 +192,13 @@ Navae_ci_mean <- function(
       stop("Invalid specification of the argument 'param_BE_EE$choice'.")
     }
   }
-  
+
   # 3- Determination of the free parameter a_n ---------------------------------
 
   if (optimize_in_a) {
 
     properties_optimal_a <- Get_optimal_a(
-      n = n, bound_K = bound_K, alpha = alpha, delta_n = delta_n,
-      max_a_tested_for_optim = max_a_tested_for_optim)
+      n = n, bound_K = bound_K, alpha = alpha, delta_n = delta_n)
 
     if (is.na(optimal_a_to_minimize_width)) {
       warning("Optimization in a failed; default choice for a is used.")
@@ -234,14 +233,14 @@ Navae_ci_mean <- function(
                 "requirements for asymptotic properties of the resulting CI.")
       }
     }
-    
+
     if (is.null(a)) {
       b_n <- n^power_of_n_for_b
       a <- 1 + b_n
     }
 
   }
-  
+
   # 4- Computation of our CI ---------------------------------------------------
 
   if (is.null(known_variance)) {
@@ -249,7 +248,7 @@ Navae_ci_mean <- function(
     # 4a- CI in the general case with unknown variance -------------------------
 
     nu_n_var <- Compute_nu_n_var(n = n, a = a, bound_K = bound_K)
-    
+
     arg_modif_quant <- 1 - alpha/2 + delta_n + nu_n_var/2
 
     indicator_R_regime <- arg_modif_quant >= stats::pnorm(sqrt(n / a))
@@ -336,7 +335,7 @@ Navae_ci_mean <- function(
 
 Compute_nu_n_var <- function(n, a, bound_K)
 {
-  return(exp(-n*(1 - 1/a)^2 / (2*bound_K)))  
+  return(exp(-n*(1 - 1/a)^2 / (2*bound_K)))
 }
 
 Empirical_kurtosis <- function(xi, xi_bar, sigma_hat)
@@ -352,14 +351,14 @@ BE_bound_Shevtsova <- function(bound_K, n)
 
 Get_optimal_a <- function(n, bound_K, alpha, delta_n)
 {
-  
+
   # Step 1: find the region to exit R regime
-  
+
   f_R_regime_if_non_negative <- function(a) {
     nu_n_var <- Compute_nu_n_var(n = n, a = a, bound_K = bound_K)
     return(1 - alpha/2 + delta_n + nu_n_var/2 - stats::pnorm(sqrt(n / a)))
   }
-  
+
   # Check if the set of a exiting R regime is empty or not
   res_optim_condition_R_regime <- optim(
     f = f_R_regime_if_non_negative,
@@ -374,15 +373,15 @@ Get_optimal_a <- function(n, bound_K, alpha, delta_n)
                 minimal_a_to_exit_R_regime = NA,
                 optimal_a_to_minimize_width = NA))
   }
-  
+
   res_uniroot_condition_R_regime <- uniroot(
-    f = f_R_regime_if_non_negative, 
+    f = f_R_regime_if_non_negative,
     lower = 1, upper = res_optim_condition_R_regime$minimum)
-  
+
   minimal_a_to_exit_R_regime <- res_uniroot_condition_R_regime$root
-  
+
   # Step 2: minimize the width within the relevant set of a exiting R regime
-  
+
   f_CI_width_up_to_sigmahat_sqrtn <- function(a) {
     nu_n_var <- Compute_nu_n_var(n = n, a = a, bound_K = bound_K)
     arg_modif_quant <- 1 - alpha/2 + delta_n + nu_n_var/2
@@ -390,21 +389,21 @@ Get_optimal_a <- function(n, bound_K, alpha, delta_n)
     C_n <- 1 / sqrt(1/a - (1/n) * q^2)
     return(C_n * q)
   }
-  
+
   res_optim_CI_width <- optimise(
-    f = f_CI_width_up_to_sigmahat_sqrtn, 
+    f = f_CI_width_up_to_sigmahat_sqrtn,
     lower = minimal_a_to_exit_R_regime, upper = max_a_tested_for_optim)
   optimal_a_to_minimize_width <- res_optim_CI_width$minimum
   optimal_width_up_to_sigmahat_sqrtn <- res_optim_CI_width$objective
-  
-  # Check we find a relevant a, i.e., exiting R regime 
+
+  # Check we find a relevant a, i.e., exiting R regime
   if (f_R_regime_if_non_negative(optimal_a_to_minimize_width) >= 0) {
     warning("Optimization in a: failure, the a found does not exit the R regime.")
     return(list(cannot_find_a_to_exit_R_regime = FALSE,
                 minimal_a_to_exit_R_regime = NA,
                 optimal_a_to_minimize_width = NA))
   }
-  
+
   return(list(cannot_find_a_to_exit_R_regime = FALSE,
               minimal_a_to_exit_R_regime = minimal_a_to_exit_R_regime,
               optimal_a_to_minimize_width = optimal_a_to_minimize_width,
