@@ -44,13 +44,13 @@
 #' }
 #'
 #' @examples
-#' n = 200000
+#' n = 4000
 #' X1 = rnorm(n, sd = 1)
 #' true_eps = rnorm(n)
 #' Y = 8 * X1 + true_eps
 #' X = cbind(X1)
 #'
-#' myCI <- Navae_ci_ols(Y, X, K_xi = 3, intercept = FALSE)
+#' myCI <- Navae_ci_ols(Y, X, K_xi = 3, intercept = TRUE, verbose = 2, a = 1.1)
 #'
 #' print(myCI)
 #'
@@ -197,6 +197,9 @@ Navae_ci_ols <- function(
   }
   if (is.null(omega)) {
     omega <- n^power_of_n_for_omega
+    if (verbose >= 2){
+      cat("omega = n^", power_of_n_for_omega, "\n")
+    }
   }
 
   if (verbose >= 2){
@@ -370,7 +373,7 @@ Navae_ci_ols <- function(
   # 9- Computing parts of our CI ===============================================
 
   nu_n_Exp_u = OLS.Nu_nExp(alpha = alpha, omega = omega, a = a,
-                           K_xi = bounds$K_xi_u, n = n)
+                           K_xi = bounds$K_xi_u, n = n, verbose = verbose)
 
   nu_n_Edg_u = nu_n_Exp_u + delta_n_u
 
@@ -548,9 +551,19 @@ OLS.CIs.Edg.extend <- function(
 #' Computation of nu_nExp
 #'
 #' @noRd
-OLS.Nu_nExp <- function(alpha, omega, a, K_xi, n)
+OLS.Nu_nExp <- function(alpha, omega, a, K_xi, n, verbose)
 {
-  result = (omega * alpha + exp(-n * (1 - 1/a)^2 / (2 * K_xi) ) ) / 2
+  term_omega_alpha = omega * alpha / 2
+  term_exp = exp( - n * (1 - 1/a)^2 / (2 * K_xi) ) / 2
+
+  if (verbose >= 2){
+    cat("Computing components of nu_n_Exp_u: \n")
+    cat("*  term_omega_alpha: ", term_omega_alpha, "\n")
+    cat("*  term_exp: ", term_exp, "\n\n")
+  }
+
+  result = term_omega_alpha + term_exp
+
   return (result)
 }
 
