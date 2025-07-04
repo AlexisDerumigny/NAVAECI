@@ -193,7 +193,7 @@ Navae_ci_ols <- function(
     }
   }
   if (is.null(a)) {
-    b_n <- n^power_of_n_for_b
+    b_n <- 100 * n^power_of_n_for_b
     a <- 1 + b_n
   }
 
