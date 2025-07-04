@@ -85,7 +85,7 @@ Navae_ci_ols <- function(
       eps = 0.1),
     intercept = TRUE,
     options = list(center = FALSE, bounded_case = FALSE, with_Exp_regime = FALSE),
-    matrix_u = ifelse(intercept, diag(NCOL(X) + 1), diag(NCOL(X))),
+    matrix_u = NULL,
     verbose = 2)
 {
 
@@ -102,7 +102,14 @@ Navae_ci_ols <- function(
   if (length(Y) != nrow(X)) {
     stop("Y must have the same number of observations as X.")
   }
-  if (ncol(matrix_u) != ncol(X) + 1 && intercept) {
+  if (is.null(matrix_u)){
+    if (intercept){
+      matrix_u = diag(NCOL(X) + 1)
+    } else {
+      matrix_u = diag(NCOL(X))
+    }
+  }
+  if ( (ncol(matrix_u) != ncol(X) + 1) && intercept) {
     stop("matrix_u must have exactly one more column than X. ",
          "The first column of matrix_u is then interpreted ",
          "as the coefficient of the intercept. The other columns ",
@@ -135,7 +142,12 @@ Navae_ci_ols <- function(
   if (verbose >= 2){
     cat("Dimension of the problem: \n")
     cat("*  n = ", n, "\n")
-    cat("*  p = ", p, "   (including the intercept)\n")
+    cat("*  p = ", p, "   ")
+    if (intercept){
+      cat("(including the intercept)\n")
+    } else {
+      cat("(model without intercept)\n")
+    }
     cat("*  number of u = ", number_u, "\n")
     cat("\n")
   }
