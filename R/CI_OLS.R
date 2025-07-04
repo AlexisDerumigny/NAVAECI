@@ -44,13 +44,13 @@
 #' }
 #'
 #' @examples
-#' n = 20000
-#' X1 = rnorm(n, sd = 4)
+#' n = 200000
+#' X1 = rnorm(n, sd = 1)
 #' true_eps = rnorm(n)
-#' Y = 3 + 8 * X1 + true_eps
+#' Y = 8 * X1 + true_eps
 #' X = cbind(X1)
 #'
-#' myCI <- Navae_ci_ols(Y, X)
+#' myCI <- Navae_ci_ols(Y, X, K_xi = 3, intercept = FALSE)
 #'
 #' print(myCI)
 #'
@@ -83,8 +83,9 @@ Navae_ci_ols <- function(
       setup = list(continuity = FALSE, iid = TRUE, no_skewness = FALSE),
       regularity = list(C0 = 1, p = 2),
       eps = 0.1),
+    intercept = TRUE,
     options = list(center = FALSE, bounded_case = FALSE, with_Exp_regime = FALSE),
-    matrix_u = diag(NCOL(X) + 1),
+    matrix_u = ifelse(intercept, diag(NCOL(X) + 1), diag(NCOL(X))),
     verbose = 2)
 {
 
@@ -101,7 +102,7 @@ Navae_ci_ols <- function(
   if (length(Y) != nrow(X)) {
     stop("Y must have the same number of observations as X.")
   }
-  if (ncol(matrix_u) != ncol(X) + 1) {
+  if (ncol(matrix_u) != ncol(X) + 1 && intercept) {
     stop("matrix_u must have exactly one more column than X. ",
          "The first column of matrix_u is then interpreted ",
          "as the coefficient of the intercept. The other columns ",
@@ -120,18 +121,16 @@ Navae_ci_ols <- function(
   n <- nrow(X)
 
   # Add a column of ones and take the empirically recentered X if option center set to TRUE.
-  X <- cbind(matrix(1, nrow = n, ncol = 1),
-             scale(X, center = options$center, scale = FALSE))
-  if (!is.null(colnames(X))) {
-    colnames(X)[1] <- "intercept"
-  } else {
-    colnames(X) <- c("intercept", paste0("X", 1:(ncol(X) - 1)))
+  if (intercept){
+    X <- cbind(matrix(1, nrow = n, ncol = 1),
+               scale(X, center = options$center, scale = FALSE))
+    if (!is.null(colnames(X))) {
+      colnames(X)[1] <- "intercept"
+    } else {
+      colnames(X) <- c("intercept", paste0("X", 1:(ncol(X) - 1)))
+    }
   }
   p <- ncol(X)
-  # TODO: pourquoi forcer à avoir une constante, au final?
-  # Attention si on recentre, à bien prendre en compte cela pour garder une colonne
-  # de 1, à voir l'implémentation (argument précisant si X contient une constante
-  # ou détection automatique, ou syntaxe avec une formula comme lm() ?)
 
   if (verbose >= 2){
     cat("Dimension of the problem: \n")
