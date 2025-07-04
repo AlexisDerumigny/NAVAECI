@@ -493,7 +493,8 @@ Navae_ci_ols <- function(
               Rnlin_u = Rnlin_u,
               Rnvar_u = Rnvar_u,
               Rnvar_u_times_norm_u_squared = Rnvar_u_times_norm_u_squared,
-              minimal_alpha_to_enter_Edg_regime = minimal_alpha_to_enter_Edg_regime))
+              minimal_alpha_to_enter_Edg_regime = minimal_alpha_to_enter_Edg_regime,
+              S = XXtbar))
 }
 
 # Auxiliary functions ----------------------------------------------------------
