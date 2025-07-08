@@ -246,34 +246,34 @@ Navae_ci_ols <- function(
   # 6- Computing the standard asymptotic CIs ===================================
   # In order to compare (and used in the simulation)
 
-  result_asymp = matrix(nrow = number_u, ncol = 3)
-  colnames(result_asymp) = c("lower", "upper", "length")
-  rownames(result_asymp) = colnames(X)
-  result_asymp = as.data.frame(result_asymp)
+  ci_asymp = matrix(nrow = number_u, ncol = 3)
+  colnames(ci_asymp) = c("lower", "upper", "length")
+  rownames(ci_asymp) = colnames(X)
+  ci_asymp = as.data.frame(ci_asymp)
   CIs.Asymp.extend = (stats::qnorm(1 - alpha/2) / sqrt(n)) * sqrt(Vhat_u)
-  result_asymp[, 1] = OLSestimate_u - CIs.Asymp.extend
-  result_asymp[, 2] = OLSestimate_u + CIs.Asymp.extend
-  result_asymp[, 3] = 2 * CIs.Asymp.extend
+  ci_asymp[, 1] = OLSestimate_u - CIs.Asymp.extend
+  ci_asymp[, 2] = OLSestimate_u + CIs.Asymp.extend
+  ci_asymp[, 3] = 2 * CIs.Asymp.extend
 
   # 7- Preparing the final matrix with our CI ==================================
   # and first case of R regime (R1)
 
-  result = matrix(nrow = number_u, ncol = 5)
-  colnames(result) <- c("lower", "upper", "regime", "estimate", "length")
-  rownames(result) <- colnames(X)
-  result = as.data.frame(result)
+  ci_navae = matrix(nrow = number_u, ncol = 5)
+  colnames(ci_navae) <- c("lower", "upper", "regime", "estimate", "length")
+  rownames(ci_navae) <- colnames(X)
+  ci_navae = as.data.frame(ci_navae)
 
   # u' OLS estimate (temporary, for check)
-  result[, 4] = OLSestimate_u
+  ci_navae[, 4] = OLSestimate_u
 
   # First condition (independent of u) for returning \Rb
   # correspond to n > 2 K_reg / (omega_n alpha) in the paper to exit regime \Rb.
   if (concentr_XXtranspose >= 1) {
 
-    result[, 1] = -Inf
-    result[, 2] = Inf
-    result[, 3] = "R1"
-    result[, 5] = Inf
+    ci_navae[, 1] = -Inf
+    ci_navae[, 2] = Inf
+    ci_navae[, 3] = "R1"
+    ci_navae[, 5] = Inf
   }
 
   # 8- Computation of the bound delta_n ========================================
@@ -406,10 +406,10 @@ Navae_ci_ols <- function(
 
     if (length(which_regime_R) > 0) {
 
-      result[which_regime_R, 1] = -Inf
-      result[which_regime_R, 2] = Inf
-      result[which_regime_R, 3] = "R2"
-      result[which_regime_R, 5] = Inf
+      ci_navae[which_regime_R, 1] = -Inf
+      ci_navae[which_regime_R, 2] = Inf
+      ci_navae[which_regime_R, 3] = "R2"
+      ci_navae[which_regime_R, 5] = Inf
     }
 
     if (length(which_regime_Edg) > 0) {
@@ -420,10 +420,10 @@ Navae_ci_ols <- function(
         nu_n_Approx = nu_n_Approx_u[which_regime_Edg],
         bound_Voracle = bound_Voracle[which_regime_Edg])
 
-      result[which_regime_Edg, 1] = OLSestimate_u[which_regime_Edg] - CIs.Edg.extend
-      result[which_regime_Edg, 2] = OLSestimate_u[which_regime_Edg] + CIs.Edg.extend
-      result[which_regime_Edg, 3] = "Edg"
-      result[which_regime_Edg, 5] = 2 * CIs.Edg.extend
+      ci_navae[which_regime_Edg, 1] = OLSestimate_u[which_regime_Edg] - CIs.Edg.extend
+      ci_navae[which_regime_Edg, 2] = OLSestimate_u[which_regime_Edg] + CIs.Edg.extend
+      ci_navae[which_regime_Edg, 3] = "Edg"
+      ci_navae[which_regime_Edg, 5] = 2 * CIs.Edg.extend
     }
 
     if (options$with_Exp_regime) {
@@ -436,10 +436,10 @@ Navae_ci_ols <- function(
           nu_n_Approx = nu_n_Approx_u[which_regime_Exp],
           bound_Voracle = bound_Voracle[which_regime_Exp])
 
-        result[which_regime_Exp, 1] = OLSestimate_u[which_regime_Exp] - CIs.Exp.extend
-        result[which_regime_Exp, 2] = OLSestimate_u[which_regime_Exp] + CIs.Exp.extend
-        result[which_regime_Exp, 3] = "Exp"
-        result[which_regime_Exp, 5] = 2 * CIs.Exp.extend
+        ci_navae[which_regime_Exp, 1] = OLSestimate_u[which_regime_Exp] - CIs.Exp.extend
+        ci_navae[which_regime_Exp, 2] = OLSestimate_u[which_regime_Exp] + CIs.Exp.extend
+        ci_navae[which_regime_Exp, 3] = "Exp"
+        ci_navae[which_regime_Exp, 5] = 2 * CIs.Exp.extend
       }
     }
 
@@ -453,7 +453,7 @@ Navae_ci_ols <- function(
     delta_n_from = delta_n_from,
     delta_n_from_u = delta_n_from_u)
 
-  ratio_length_wrt_ci_asymp <- result[, 5] / result_asymp[, 3]
+  ratio_length_wrt_ci_asymp <- ci_navae[, 5] / ci_asymp[, 3]
 
   minimal_alpha_to_enter_Edg_regime <- 2 * nu_n_Edg_u
 
@@ -466,15 +466,15 @@ Navae_ci_ols <- function(
 
   if (verbose >= 1){
     cat("Classical CI obtained from the CLT: \n")
-    print(result_asymp)
+    print(ci_asymp)
 
     cat("\n NAVAE CI: \n")
-    print(result)
+    print(ci_navae)
     cat("\n")
   }
 
-  return(list(ci_navae = result,
-              ci_asymp = result_asymp,
+  return(list(ci_navae = ci_navae,
+              ci_asymp = ci_asymp,
               allTuningParameters = allTuningParameters,
               allBounds = allBounds,
               about_delta_n = about_delta_n,
