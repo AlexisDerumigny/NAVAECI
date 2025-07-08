@@ -94,7 +94,9 @@ Navae_ci_ols <- function(
   # Force X to be a matrix, even if there is only one variable
   # Same for matrix_u
   if (is.vector(X)) {X <- matrix(X, ncol = 1)}
-  if (NCOL(matrix_u) == 1) {matrix_u <- matrix(matrix_u, ncol = 1)}
+  if ((!is.null(matrix_u)) && (NCOL(matrix_u) == 1)) {
+    matrix_u <- matrix(matrix_u, ncol = 1)
+  }
 
   if (!is.vector(Y)) {
     stop("Y must be a vector.")
