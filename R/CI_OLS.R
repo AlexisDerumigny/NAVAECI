@@ -182,44 +182,18 @@ Navae_ci_ols <- function(
   Vhat = n * inverse_XXt %*% (crossprod(X * reg$residuals)) %*% inverse_XXt
   Vhat_u = apply(X = matrix_u, MARGIN = 1, FUN = function(u){t(u) %*% Vhat %*% u})
 
+
   # 3- Setting the parameters omega and a if not provided ======================
 
-  # Parameter a = a_n
-  if (is.null(power_of_n_for_b)) {
-    power_of_n_for_b <- -2/5
-  } else {
-    stopifnot((is.numeric(power_of_n_for_b)) && length(power_of_n_for_b) == 1)
-    if ((power_of_n_for_b > 0) || (power_of_n_for_b <= -1/2)) {
-      warning("The choice of 'power_of_n_for_b' does not satisfy the ",
-              "requirements for asymptotic properties of the resulting CI.")
-    }
-  }
-  if (is.null(a)) {
-    b_n <- 100 * n^power_of_n_for_b
-    a <- 1 + b_n
-  }
+  allTuningParameters = .computeTuningParameters_OLS(
+    n = n, a = a,  power_of_n_for_b = power_of_n_for_b,
+    omega = omega, power_of_n_for_omega = power_of_n_for_omega)
 
-  # Parameter omega = omega_n
-  if (is.null(power_of_n_for_omega)) {
-    power_of_n_for_omega <- -1/5
-  } else {
-    stopifnot((is.numeric(power_of_n_for_omega)) && length(power_of_n_for_omega) == 1)
-    if ((power_of_n_for_omega > 0) || (power_of_n_for_omega <= -2/3)) {
-      warning("The choice of 'power_of_n_for_omega' does not satisfy the ",
-              "requirements for asymptotic properties of the resulting CI.")
-    }
-  }
-  if (is.null(omega)) {
-    omega <- n^power_of_n_for_omega
-    if (verbose >= 2){
-      cat("omega = n^", power_of_n_for_omega, "\n")
-    }
-  }
+  a = allTuningParameters$a$value
+  omega = allTuningParameters$omega$value
 
   if (verbose >= 2){
-    cat("Tuning parameters: \n")
-    cat("*  a: "    , a    , "\n")
-    cat("*  omega: ", omega, "\n\n")
+    print(allTuningParameters)
   }
 
 
@@ -242,7 +216,7 @@ Navae_ci_ols <- function(
   concentr_XXtranspose = Compute_concentrationXXt(
     bounded_case = options$bounded_case, bounds = bounds,
     delta = gamma, # only used for the bounded case, not present in the paper.
-                   # to be checked later.
+    # to be checked later.
     n = n, d = ncol(X), gamma = gamma)
 
   Rnlin_u <- Compute_RnLin(
@@ -501,6 +475,7 @@ Navae_ci_ols <- function(
 
   return(list(ci_navae = result,
               ci_asymp = result_asymp,
+              allTuningParameters = allTuningParameters,
               allBounds = allBounds,
               about_delta_n = about_delta_n,
               ratio_length_wrt_ci_asymp = ratio_length_wrt_ci_asymp,
@@ -824,6 +799,149 @@ computeBounds <- function(env, verbose = 2)
   }
 
   return(allBounds)
+}
+
+
+#' Compute tuning parameters for the NAVAE confidence interval in the
+#' linear regression case
+#'
+#' @param n sample size
+#' @param a parameter a in the function \code{\link{Navae_ci_ols}}
+#' @param power_of_n_for_b parameter \eqn{t} in the choice of \eqn{a} given by
+#' \eqn{a = 100 * n^(-t)}.
+#' @param omega parameter omega in the function \code{\link{Navae_ci_ols}}
+#' @param power_of_n_for_omega parameter \eqn{t} in the choice of \eqn{omega}
+#' given by \eqn{omega = n^(-t)}.
+#'
+#' @param x object to be printed
+#' @param ... other arguments to passed to \code{print}, currently unused.
+#'
+#' @returns \code{.computeTuningParameters_OLS} returns an object of class
+#' \code{NAVAE_CI_OLS_TuningParameters} with the values of the tuning parameters
+#' and some information on how they were determined.
+#'
+#' \code{print} displays information about the tuning parameters and returns
+#' \code{x} invisibly.
+#'
+#' @examples
+#'
+#' .computeTuningParameters_OLS(n = 1000)
+#' .computeTuningParameters_OLS(n = 1000, a = 2)
+#' .computeTuningParameters_OLS(n = 1000, power_of_n_for_b = -1/3)
+#' .computeTuningParameters_OLS(n = 1000, omega = 0.2)
+#' .computeTuningParameters_OLS(n = 1000, power_of_n_for_omega = -0.2)
+#'
+#' @rdname computeTuningParameters_OLS
+#' @export
+.computeTuningParameters_OLS <- function(n, a = NULL, power_of_n_for_b = NULL,
+                                         omega = NULL, power_of_n_for_omega = NULL){
+
+  result = list()
+
+  # Parameter a  ===============================================================
+
+  if(!is.null(a)){
+    if (!is.numeric(a) || length(a) != 1 ) {
+      stop("'a' should be `NULL` or a numeric vector of size 1.")
+    }
+
+    result$a = list(value = a,
+                    method = "provided by user")
+  } else {
+
+    if (!is.null(power_of_n_for_b)) {
+      if (!is.numeric(power_of_n_for_b) || length(power_of_n_for_b) != 1 ) {
+        stop("'power_of_n_for_b' should be `NULL` or a numeric vector of size 1.")
+      }
+      if ((power_of_n_for_b > 0) || (power_of_n_for_b <= -1/2)) {
+        warning("The choice of 'power_of_n_for_b' does not satisfy the ",
+                "requirements for asymptotic properties of the resulting CI.",
+                "It should be in the interval (-1/2; 0].")
+      }
+
+      power_of_n_for_b = list(value = power_of_n_for_b,
+                              method = "provided by user")
+    } else {
+      power_of_n_for_b = list(value = -2/5,
+                              method = "default value")
+    }
+
+    b_n <- 100 * n^power_of_n_for_b$value
+    a <- 1 + b_n
+
+    result$a = list(value = a,
+                    method = "computed from 'power_of_n_for_b'",
+                    b_n = b_n,
+                    power_of_n_for_b = power_of_n_for_b
+    )
+  }
+
+
+  # Parameter omega  ===========================================================
+
+  if (!is.null(omega)){
+    if (!is.numeric(omega) || length(omega) != 1 ) {
+      stop("'omega' should be `NULL` or a numeric vector of size 1.")
+    }
+
+    result$omega = list(value = omega,
+                        method = "provided by user")
+  } else {
+
+    if (!is.null(power_of_n_for_omega)) {
+      if (!is.numeric(power_of_n_for_omega) || length(power_of_n_for_omega) != 1 ) {
+        stop("'power_of_n_for_omega' should be `NULL` or a numeric vector of size 1.")
+      }
+      if ((power_of_n_for_omega > 0) || (power_of_n_for_omega <= -2/3)) {
+        warning("The choice of 'power_of_n_for_omega' does not satisfy the ",
+                "requirements for asymptotic properties of the resulting CI.",
+                "It should be in the interval (-2/3; 0].")
+      }
+
+      power_of_n_for_omega = list(value = power_of_n_for_omega,
+                                  method = "provided by user")
+    } else {
+      power_of_n_for_omega = list(value = -1/5,
+                                  method = "default value")
+    }
+
+    omega <- n^power_of_n_for_omega$value
+
+    result$omega = list(value = omega,
+                        method = "computed from 'power_of_n_for_omega'",
+                        power_of_n_for_omega = power_of_n_for_omega
+    )
+  }
+
+  class(result) <- "NAVAE_CI_OLS_TuningParameters"
+
+  return (result)
+}
+
+
+#' @rdname computeTuningParameters_OLS
+#' @export
+print.NAVAE_CI_OLS_TuningParameters <- function(x, ...){
+  cat("Tuning parameters: \n")
+
+  cat("*  a:    "    , x$a$value    , "   ", x$a$method, sep = "")
+  if (x$a$method != "provided by user"){
+    cat(" = ", x$a$power_of_n_for_b$value,
+        " (", x$a$power_of_n_for_b$method, ")",
+        sep = "")
+  }
+  cat("\n")
+
+  cat("*  omega: "    , x$omega$value    , " ", x$omega$method, sep = "")
+  if (x$omega$method != "provided by user"){
+    cat(" = ", x$omega$power_of_n_for_omega$value,
+        " (", x$omega$power_of_n_for_omega$method, ")",
+        sep = "")
+  }
+
+  cat("\n\n")
+
+  return (invisible(x))
 }
 
 
