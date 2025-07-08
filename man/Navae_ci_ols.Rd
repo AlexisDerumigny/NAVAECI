@@ -18,8 +18,9 @@ Navae_ci_ols(
   K_xi = NULL,
   param_BE_EE = list(choice = "best", setup = list(continuity = FALSE, iid = TRUE,
     no_skewness = FALSE), regularity = list(C0 = 1, p = 2), eps = 0.1),
+  intercept = TRUE,
   options = list(center = FALSE, bounded_case = FALSE, with_Exp_regime = FALSE),
-  matrix_u = diag(NCOL(X) + 1),
+  matrix_u = NULL,
   verbose = 2
 )
 }
@@ -77,13 +78,13 @@ Compute NAVAE CI for coefficients of a linear regression based on
 the OLS estimator and Berry-Esseen (BE) or Edgeworth Expansions (EE) bounds
 }
 \examples{
-n = 20000
-X1 = rnorm(n, sd = 4)
+n = 4000
+X1 = rnorm(n, sd = 1)
 true_eps = rnorm(n)
-Y = 3 + 8 * X1 + true_eps
+Y = 8 * X1 + true_eps
 X = cbind(X1)
 
-myCI <- Navae_ci_ols(Y, X)
+myCI <- Navae_ci_ols(Y, X, K_xi = 3, intercept = TRUE, verbose = 2, a = 1.1)
 
 print(myCI)
 
