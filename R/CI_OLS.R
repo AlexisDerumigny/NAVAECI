@@ -7,7 +7,8 @@
 #' @param alpha 1 - level of confidence of the CI
 #' @param omega the tuning parameter \eqn{\omega} of the interval
 #' @param a the tuning parameter \eqn{a} of the interval
-#' @param bounds list of bounds for the DGP.
+#' @param bounds,K_xi list of bounds for the DGP. Note that \code{K_xi} can also
+#' be provided as a separate argument, for convenience.
 #' It can contain the following items: \itemize{
 #'    \item \code{lambda_reg}
 #'    \item \code{K_eps}

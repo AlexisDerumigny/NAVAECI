@@ -36,7 +36,8 @@ Navae_ci_ols(
 
 \item{omega}{the tuning parameter \eqn{\omega} of the interval}
 
-\item{bounds}{list of bounds for the DGP.
+\item{bounds, K_xi}{list of bounds for the DGP. Note that \code{K_xi} can also
+be provided as a separate argument, for convenience.
 It can contain the following items: \itemize{
    \item \code{lambda_reg}
    \item \code{K_eps}
