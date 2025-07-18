@@ -247,6 +247,8 @@ Navae_ci_mean <- function(
 
     # 4a- CI in the general case with unknown variance -------------------------
 
+    known_variance_used <- FALSE
+    
     nu_n_var <- Compute_nu_n_var(n = n, a = a, bound_K = bound_K)
 
     arg_modif_quant <- 1 - alpha/2 + delta_n + nu_n_var/2
@@ -277,6 +279,8 @@ Navae_ci_mean <- function(
     if ((!is.numeric(known_variance)) || (length(known_variance) > 1)) {
       stop("Argument 'known_variance' must be a scalar numeric vector.")
     }
+    
+    known_variance_used <- TRUE
 
     arg_modif_quant <- 1 - alpha/2 + delta_n
 
@@ -314,6 +318,8 @@ Navae_ci_mean <- function(
 
     return(list(ci = ci,
                 indicator_R_regime = indicator_R_regime,
+                known_variance_used = known_variance_used,
+                length_ci = ifelse(test = indicator_R_regime, yes = Inf, no = ci[[2]] - ci[[1]]),
                 ci_CLT = ci_CLT,
                 ratio_length_wrt_CLT = ratio_length_wrt_CLT,
                 delta_n = delta_n,
