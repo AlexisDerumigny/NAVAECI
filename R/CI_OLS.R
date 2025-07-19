@@ -1,10 +1,17 @@
 #' Compute NAVAE CI for coefficients of a linear regression based on
 #' the OLS estimator and Berry-Esseen (BE) or Edgeworth Expansions (EE) bounds
-
+#'
 #' @param Y vector of observations of the explained variables
-#' @param X matrix of explanatory variables.
-#' \code{X} must not contain a constant column.
-#' @param alpha 1 - level of confidence of the CI
+#'
+#' @param X,intercept \code{X} is the matrix of explanatory variables. If
+#' \code{intercept = TRUE}, a constant column of \code{1} (intercept) is added
+#' too. Note that the number of rows of \code{X} must be the same as the length
+#' of \code{Y}.
+#'
+#' @param alpha this is 1 minus the confidence level of the CI; in other words,
+#' the nominal level is 1 - alpha.
+#' By default, \code{alpha} is set to 0.05, yielding a 95\% CI.
+#'
 #' @param omega the tuning parameter \eqn{\omega} of the interval
 #' @param a the tuning parameter \eqn{a} of the interval
 #' @param bounds,K_xi list of bounds for the DGP. Note that \code{K_xi} can also
@@ -30,6 +37,44 @@
 #' By default \code{matrix_u} is the identity matrix, corresponding
 #' to the canonical basis of \eqn{R^p}.
 #'
+#'
+#'
+#' @param param_BE_EE parameters to compute the BE or EE bound \eqn{\delta_n} used
+#' to construct the confidence interval.
+#' Otherwise, \code{param_BE_EE} is a list of four objects: \itemize{
+#'   \item \code{choice}: \itemize{
+#'      \item If equal to \code{"EE"}, the bound used is Derumigny et al. (2023)'s
+#'      bound computed using the parameters specified by the rest of \code{param_BE_EE},
+#'      as described in the arguments of the function
+#'      \code{BoundEdgeworth::\link[BoundEdgeworth]{Bound_EE1}}.
+#'      Together, these last three items of the list specify the bounds and
+#'      assumptions used to compute the bound \eqn{\delta_n} from Derumigny et al. (2023).
+#'
+#'      \item If equal to \code{"BE"}, then the bound used is the best up-to-date
+#'      BE bound from Shevtsova (2013) combined with a convexity inequality.
+#'
+#'      \item If equal to \code{"best"}, both bounds are computed
+#'      and the smallest of both is used.
+#'
+#'      By default, following Remark 3.3 of the article, \code{"best"} is used
+#'      and Derumigny et al. (2023)'s bound is computed assuming i.i.d data and
+#'      no other regularity assumptions (continuous or unskewed distribution).
+#'      The bound on kurtosis that is used is the one specified in the previous
+#'      argument \code{K_xi}.
+#'   }
+#'
+#'   \item \code{setup}: itself a logical vector of size 3,
+#'   \item \code{regularity}: itself a list of length up to 3,
+#'   \item \code{eps}: value between 0 and 1/3,
+#' }
+#'
+#'
+#' @param verbose If \code{verbose = 0}, this function is silent and does not
+#' print anything. Increasing values of \code{verbose} print more details about
+#' the progress of the computations and, in particular, the different terms that
+#' are computed.
+#'
+#'
 #' @return This function returns a data frame consisting of an observation
 #' for each vector u given as a line of \code{matrix_u},
 #' with the following columns: \itemize{
@@ -43,6 +88,18 @@
 #'        \item the Edgeworth regime \code{Edg}.
 #'    }
 #' }
+#'
+#' @references
+#' For the Edgeworth expansion bounds:
+#'
+#' Derumigny A., Girard L., and Guyonvarch Y. (2023).
+#' Explicit non-asymptotic bounds for the distance to the first-order Edgeworth expansion,
+#' Sankhya A. \doi{10.1007/s13171-023-00320-y}
+#' \href{https://arxiv.org/abs/2101.05780}{arxiv:2101.05780}.
+#'
+#'
+#' @seealso \code{\link{Navae_ci_mean}} the corresponding function for the
+#' estimation of the mean.
 #'
 #' @examples
 #' n = 4000
@@ -117,9 +174,6 @@ Navae_ci_ols <- function(
          "The first column of matrix_u is then interpreted ",
          "as the coefficient of the intercept. The other columns ",
          "of matrix_u correspond respectively to the columns of X.")
-  }
-  if (any(unlist(lapply(1:ncol(X), FUN = function(i) {length(unique(X[,i])) == 1})))) {
-    stop("X must not contain any constant columns.")
   }
   if ((!is.logical(options$center)) || (length(options$center) != 1)) {
     stop("`options$center' must be either TRUE or FALSE.")
