@@ -278,6 +278,7 @@ Navae_ci_mean <- function(
 
       ci <- c(-Inf, Inf)
       ratio_length_wrt_CLT <- Inf
+      C_n <- NA # put as NA for output in verbose, to be defined in all cases.
 
     } else {
 
@@ -299,6 +300,8 @@ Navae_ci_mean <- function(
     known_variance_used <- TRUE
 
     arg_modif_quant <- 1 - alpha/2 + delta_n
+    
+    C_n <- NA # not defined in the case of known variance; put as NA for output in verbose.
 
     indicator_R_regime <- arg_modif_quant >= 1
 
@@ -341,6 +344,7 @@ Navae_ci_mean <- function(
                 delta_n = delta_n,
                 delta_n_from = delta_n_from,
                 arg_modif_quant = arg_modif_quant,
+                C_n = C_n,
                 minimal_alpha_to_exit_R_regime = minimal_alpha_to_exit_R_regime,
                 bound_K_method = bound_K_method,
                 bound_K_value = bound_K,
