@@ -217,7 +217,6 @@ Navae_ci_mean <- function(
     properties_optimal_a <- list(use_optimal_a = FALSE)
   }
 
-
   if (isFALSE(optimized_a_is_used)) {
     # Then we do the default choice of a
 
@@ -237,8 +236,11 @@ Navae_ci_mean <- function(
     if (is.null(a)) {
       b_n <- n^power_of_n_for_b
       a <- 1 + b_n
+    } else {
+      # Define b_n also in this case for consistency since it is also reported
+      # in the verbose output.
+      b_n <- a - 1
     }
-
   }
 
   # 4- Computation of our CI ---------------------------------------------------
