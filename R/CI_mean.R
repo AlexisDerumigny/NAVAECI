@@ -3,14 +3,15 @@
 #'
 #' @param data vector of univariate observations.
 #'
-#' @param alpha 1 - level of confidence of the CI; nominal level = 1 - alpha.
-#' By default, alpha is set to 0.05, yielding a 95\% CI.
+#' @param alpha this is 1 minus the confidence level of the CI; in other words,
+#' the nominal level is 1 - alpha.
+#' By default, \code{alpha} is set to \code{0.05}, yielding a 95\% CI.
 #'
 #' @param a the free parameter \eqn{a} (or \eqn{a_n}) of the interval.
 #' @param power_of_n_for_b
 #' If the argument \code{a} is not provided, the following default choice is
 #' made for the free parameter:
-#' a_n = a = 1 + \eqn{b_n} with \eqn{b_n = n^{\code{power_of_n_for_b}}}.
+#' \code{a_n = a = 1 + b_n} with \code{b_n = n^{power_of_n_for_b}}.
 #' If \code{power_of_n_for_b} is not provided (default argument NULL),
 #' the default choice is \code{power_of_n_for_b} = -2/5.
 #' Such a choice satisfies the conditions on the sequence of free parameters
@@ -21,8 +22,8 @@
 #' @param bound_K bound on the kurtosis K_4(theta) of the distribution of the
 #' observations that are assumed to be i.i.d.
 #' The choice of 9 covers most "usual" distributions.
-#' If the argument is not provided (default argument NULL), the value used is
-#' the plug-in counterpart \eqn{\widehat{K}}, that is, the empirical kurtosis
+#' If the argument is not provided (default argument \code{NULL}), the value used
+#' is the plug-in counterpart \eqn{\widehat{K}}, that is, the empirical kurtosis
 #' of the observations.
 #'
 #' @param known_variance by default NULL, in this case, the function computes
@@ -45,7 +46,8 @@
 #'   \item \code{regularity}: itself a list of length up to 3,
 #'   \item \code{eps}: value between 0 and 1/3,
 #' }
-#' as described in the arguments of the function \code{BoundEdegworth::Bound_EE1}.
+#' as described in the arguments of the function
+#' \code{BoundEdgeworth::\link[BoundEdgeworth]{Bound_EE1}}.
 #' Together, they specify the bounds and assumptions used to compute the
 #' bound \eqn{\delta_n} from Derumigny et al. (2023).
 #' Finally, if \code{choice} is equal to \code{"best"}, the bound used is the minimum
@@ -72,6 +74,18 @@
 #' - the value of the argument of the modified quantile;
 #' - the minimal alpha to exit the \eqn{\mathbb{R}} regime.
 #' - the value K used and the method
+#'
+#' @references
+#' For the Edgeworth expansion bounds:
+#'
+#' Derumigny A., Girard L., and Guyonvarch Y. (2023).
+#' Explicit non-asymptotic bounds for the distance to the first-order Edgeworth expansion,
+#' Sankhya A. \doi{10.1007/s13171-023-00320-y}
+#' \href{https://arxiv.org/abs/2101.05780}{arxiv:2101.05780}.
+#'
+#'
+#' @seealso \code{\link{Navae_ci_ols}} the corresponding function for the linear
+#' regression case.
 #'
 #' @examples
 #' n = 1000
@@ -151,7 +165,7 @@ Navae_ci_mean <- function(
   n <- length(xi)
 
   if (n < 2) {
-    stop("'data' must be at least of length 2.")
+    stop("'data' have at least 2 non-missing observations.")
   }
 
   xi_bar <- mean(xi)
@@ -250,7 +264,7 @@ Navae_ci_mean <- function(
     # 4a- CI in the general case with unknown variance -------------------------
 
     known_variance_used <- FALSE
-    
+
     nu_n_var <- Compute_nu_n_var(n = n, a = a, bound_K = bound_K)
 
     arg_modif_quant <- 1 - alpha/2 + delta_n + nu_n_var/2
@@ -281,7 +295,7 @@ Navae_ci_mean <- function(
     if ((!is.numeric(known_variance)) || (length(known_variance) > 1)) {
       stop("Argument 'known_variance' must be a scalar numeric vector.")
     }
-    
+
     known_variance_used <- TRUE
 
     arg_modif_quant <- 1 - alpha/2 + delta_n

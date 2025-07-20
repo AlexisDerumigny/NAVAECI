@@ -1,12 +1,17 @@
-Package: HonestCI
+Package: NAVAECI
 Type: Package
-Title: What the Package Does (Title Case)
+Title: Non-Asymptotically Valid and Asymptotically Exact (NAVAE) Confidence Intervals
 Version: 0.1.0
-Author: Who wrote it
-Maintainer: The package maintainer <yourself@somewhere.net>
-Description: More about what it does (maybe more than one line)
-  Use four spaces when indenting paragraphs within the Description.
-License: What license is it under?
+Authors@R: c(
+  person("Alexis", "Derumigny",, email = "a.f.f.derumigny@tudelft.nl", role = c("aut", "cre"),
+         comment = c(ORCID = "0000-0002-6163-8097")),
+  person("Lucas", "Girard",, email = "lucas.girard@ensae.fr", role = "aut"),
+  person("Yannick", "Guyonvarch",, email = "yannick.guyonvarch@inrae.fr", role = "aut")
+  )
+Description: Implements the non-asymptotically valid and asymptotically exact
+  confidence intervals in two cases: estimation of the mean and estimation of
+  (a linear combination of) the coefficients in a linear regression model.
+License: GPL-3
 Encoding: UTF-8
 Imports: 
   BoundEdgeworth,
