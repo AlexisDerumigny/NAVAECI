@@ -301,14 +301,15 @@ Navae_ci_ols <- function(
   # 6- Computing the standard asymptotic CIs ===================================
   # In order to compare (and used in the simulation)
 
-  ci_asymp = matrix(nrow = number_u, ncol = 3)
-  colnames(ci_asymp) = c("lower", "upper", "length")
+  ci_asymp = matrix(nrow = number_u, ncol = 4)
+  colnames(ci_asymp) = c("lower", "upper", "estimate", "length")
   rownames(ci_asymp) = colnames(X)
   ci_asymp = as.data.frame(ci_asymp)
   CIs.Asymp.extend = (stats::qnorm(1 - alpha/2) / sqrt(n)) * sqrt(Vhat_u)
   ci_asymp[, 1] = OLSestimate_u - CIs.Asymp.extend
   ci_asymp[, 2] = OLSestimate_u + CIs.Asymp.extend
-  ci_asymp[, 3] = 2 * CIs.Asymp.extend
+  ci_asymp[, 3] = OLSestimate_u
+  ci_asymp[, 4] = 2 * CIs.Asymp.extend
 
   # 7- Preparing the final matrix with our CI ==================================
   # and first case of R regime (R1)
@@ -318,7 +319,7 @@ Navae_ci_ols <- function(
   rownames(ci_navae) <- colnames(X)
   ci_navae = as.data.frame(ci_navae)
 
-  # u' OLS estimate (temporary, for check)
+  # u' OLS estimate
   ci_navae[, 4] = OLSestimate_u
 
   # First condition (independent of u) for returning \Rb
