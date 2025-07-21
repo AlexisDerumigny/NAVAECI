@@ -8,9 +8,7 @@ and Berry-Esseen (BE) or Edgeworth Expansions (EE) bounds}
 Navae_ci_mean(
   data,
   alpha = 0.05,
-  a = NULL,
-  power_of_n_for_b = NULL,
-  optimize_in_a = FALSE,
+  a = "best",
   bound_K = NULL,
   known_variance = NULL,
   param_BE_EE = list(choice = "best", setup = list(continuity = FALSE, iid = TRUE,
@@ -25,17 +23,17 @@ Navae_ci_mean(
 the nominal level is 1 - alpha.
 By default, \code{alpha} is set to \code{0.05}, yielding a 95\% CI.}
 
-\item{a}{the free parameter \eqn{a} (or \eqn{a_n}) of the interval.}
+\item{a}{the free parameter \eqn{a} (or \eqn{a_n}) of the interval.
+It must be either \itemize{
+  \item a numeric value larger than 1, taken as the value of \eqn{a},
 
-\item{power_of_n_for_b}{If the argument \code{a} is not provided, the following default choice is
-made for the free parameter:
-\code{a_n = a = 1 + b_n} with \code{b_n = n^{power_of_n_for_b}}.
-If \code{power_of_n_for_b} is not provided (default argument NULL),
-the default choice is \code{power_of_n_for_b} = -2/5.
-Such a choice satisfies the conditions on the sequence of free parameters
-for the CI to be asymptotically exact pointwise and uniformly over the set
-of distributions with a bounded kurtosis. If the specified
-\code{power_of_n_for_b} violates those condition, a warning is output.}
+  \item the character value \code{"best"} which is the default. It selects the
+  \code{a} such that the confidence interval has the smallest length.
+
+  \item a list such as \code{list(power_of_n_for_b = -2/5)} giving a way to
+  compute \code{a} as \code{a = 1 + n^power_of_n_for_b}. Note that \code{-2/5}
+  is the optimal (theoretical) rate.
+}}
 
 \item{bound_K}{bound on the kurtosis K_4(theta) of the distribution of the
 observations that are assumed to be i.i.d.
@@ -93,23 +91,14 @@ Compute NAVAE CI for the expectation based on empirical mean estimator
 and Berry-Esseen (BE) or Edgeworth Expansions (EE) bounds
 }
 \examples{
-n = 1000
-data = rexp(n, 1)
-Navae_ci_mean(data, bound_K = 9)
-Navae_ci_mean(data, bound_K = 9, a = 6)
-Navae_ci_mean(data) # plug-in for K
+n = 10000
+x = rexp(n, 1)
 
-n = 1000
-data = rexp(n, 1)
-Navae_ci_mean(data, bound_K = 9)
-Navae_ci_mean(data, bound_K = 9, a = 1 + 5)
-Navae_ci_mean(data) # plug-in for K
-
-n = 5 * 10^3
-data = rexp(n, 1)
-Navae_ci_mean(data, bound_K = 9, alpha = 0.2, a = 1 + n^(-0/5))
-Navae_ci_mean(data, bound_K = 9, alpha = 0.2)
-Navae_ci_mean(data, alpha = 0.2) # plug-in for K
+Navae_ci_mean(x, bound_K = 9, alpha = 0.2, a = 1 + n^(-2/5))
+# Same as:
+Navae_ci_mean(x, bound_K = 9, alpha = 0.2, a = list(power_of_n_for_b = -2/5))
+Navae_ci_mean(x, bound_K = 9, alpha = 0.2)
+Navae_ci_mean(x, alpha = 0.2) # plug-in for K
 
 listParams1 = list(
   choice = "best",
@@ -122,20 +111,10 @@ listParams2 = list(
   setup = list(continuity = TRUE, iid = TRUE, no_skewness = FALSE),
   regularity = list(kappa = 0.99), eps = 0.1)
 
-Navae_ci_mean(data, alpha = 0.1, param_BE_EE = listParams1)
-Navae_ci_mean(data, alpha = 0.1, param_BE_EE = listParams2)
-Navae_ci_mean(data, alpha = 0.05, param_BE_EE = listParams1)
-Navae_ci_mean(data, alpha = 0.05, param_BE_EE = listParams2)
-
-n = 1000 * 10^3
-data = rexp(n, 1)
-Navae_ci_mean(data, bound_K = 9, alpha = 0.10)
-Navae_ci_mean(data, alpha = 0.10)
-Navae_ci_mean(data, bound_K = 9, alpha = 0.05)
-Navae_ci_mean(data, bound_K = 9, alpha = 0.05, a = 1 + n^(-1/3))
-Navae_ci_mean(data, bound_K = 9, alpha = 0.05, a = 1 + 4)
-Navae_ci_mean(data, bound_K = 9, alpha = 0.05, a = 1 + n^(-1/5))
-Navae_ci_mean(data, bound_K = 9, alpha = 0.05, a = 1 + n^(-0.5/5))
+Navae_ci_mean(x, alpha = 0.1, param_BE_EE = listParams1)
+Navae_ci_mean(x, alpha = 0.1, param_BE_EE = listParams2)
+Navae_ci_mean(x, alpha = 0.05, param_BE_EE = listParams1)
+Navae_ci_mean(x, alpha = 0.05, param_BE_EE = listParams2)
 
 }
 \references{

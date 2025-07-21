@@ -8,16 +8,16 @@
 #' By default, \code{alpha} is set to \code{0.05}, yielding a 95\% CI.
 #'
 #' @param a the free parameter \eqn{a} (or \eqn{a_n}) of the interval.
-#' @param power_of_n_for_b
-#' If the argument \code{a} is not provided, the following default choice is
-#' made for the free parameter:
-#' \code{a_n = a = 1 + b_n} with \code{b_n = n^{power_of_n_for_b}}.
-#' If \code{power_of_n_for_b} is not provided (default argument NULL),
-#' the default choice is \code{power_of_n_for_b} = -2/5.
-#' Such a choice satisfies the conditions on the sequence of free parameters
-#' for the CI to be asymptotically exact pointwise and uniformly over the set
-#' of distributions with a bounded kurtosis. If the specified
-#' \code{power_of_n_for_b} violates those condition, a warning is output.
+#' It must be either \itemize{
+#'   \item a numeric value larger than 1, taken as the value of \eqn{a},
+#'
+#'   \item the character value \code{"best"} which is the default. It selects the
+#'   \code{a} such that the confidence interval has the smallest length.
+#'
+#'   \item a list such as \code{list(power_of_n_for_b = -2/5)} giving a way to
+#'   compute \code{a} as \code{a = 1 + n^power_of_n_for_b}. Note that \code{-2/5}
+#'   is the optimal (theoretical) rate.
+#' }
 #'
 #' @param bound_K bound on the kurtosis K_4(theta) of the distribution of the
 #' observations that are assumed to be i.i.d.
@@ -82,23 +82,14 @@
 #' regression case.
 #'
 #' @examples
-#' n = 1000
-#' data = rexp(n, 1)
-#' Navae_ci_mean(data, bound_K = 9)
-#' Navae_ci_mean(data, bound_K = 9, a = 6)
-#' Navae_ci_mean(data) # plug-in for K
+#' n = 10000
+#' x = rexp(n, 1)
 #'
-#' n = 1000
-#' data = rexp(n, 1)
-#' Navae_ci_mean(data, bound_K = 9)
-#' Navae_ci_mean(data, bound_K = 9, a = 1 + 5)
-#' Navae_ci_mean(data) # plug-in for K
-#'
-#' n = 5 * 10^3
-#' data = rexp(n, 1)
-#' Navae_ci_mean(data, bound_K = 9, alpha = 0.2, a = 1 + n^(-0/5))
-#' Navae_ci_mean(data, bound_K = 9, alpha = 0.2)
-#' Navae_ci_mean(data, alpha = 0.2) # plug-in for K
+#' Navae_ci_mean(x, bound_K = 9, alpha = 0.2, a = 1 + n^(-2/5))
+#' # Same as:
+#' Navae_ci_mean(x, bound_K = 9, alpha = 0.2, a = list(power_of_n_for_b = -2/5))
+#' Navae_ci_mean(x, bound_K = 9, alpha = 0.2)
+#' Navae_ci_mean(x, alpha = 0.2) # plug-in for K
 #'
 #' listParams1 = list(
 #'   choice = "best",
@@ -111,31 +102,16 @@
 #'   setup = list(continuity = TRUE, iid = TRUE, no_skewness = FALSE),
 #'   regularity = list(kappa = 0.99), eps = 0.1)
 #'
-#' Navae_ci_mean(data, alpha = 0.1, param_BE_EE = listParams1)
-#' Navae_ci_mean(data, alpha = 0.1, param_BE_EE = listParams2)
-#' Navae_ci_mean(data, alpha = 0.05, param_BE_EE = listParams1)
-#' Navae_ci_mean(data, alpha = 0.05, param_BE_EE = listParams2)
-#'
-#' n = 1000 * 10^3
-#' data = rexp(n, 1)
-#' Navae_ci_mean(data, bound_K = 9, alpha = 0.10)
-#' Navae_ci_mean(data, alpha = 0.10)
-#' Navae_ci_mean(data, bound_K = 9, alpha = 0.05)
-#' Navae_ci_mean(data, bound_K = 9, alpha = 0.05, a = 1 + n^(-1/3))
-#' Navae_ci_mean(data, bound_K = 9, alpha = 0.05, a = 1 + 4)
-#' Navae_ci_mean(data, bound_K = 9, alpha = 0.05, a = 1 + n^(-1/5))
-#' Navae_ci_mean(data, bound_K = 9, alpha = 0.05, a = 1 + n^(-0.5/5))
+#' Navae_ci_mean(x, alpha = 0.1, param_BE_EE = listParams1)
+#' Navae_ci_mean(x, alpha = 0.1, param_BE_EE = listParams2)
+#' Navae_ci_mean(x, alpha = 0.05, param_BE_EE = listParams1)
+#' Navae_ci_mean(x, alpha = 0.05, param_BE_EE = listParams2)
 #'
 #' @export
-#
-# TODO: possibly change the choice of a when not provided to select, if exist
-# the best (for the resulting length of the IC) i.e. lowest a such that
-# we are not in the R regime?
-# But in all cases, it requires quite large sample sizes.
-#
+#'
 Navae_ci_mean <- function(
   data, alpha = 0.05,
-  a = NULL, power_of_n_for_b = NULL, optimize_in_a = FALSE,
+  a = "best",
   bound_K = NULL, known_variance = NULL,
   param_BE_EE = list(
     choice = "best",
@@ -201,55 +177,81 @@ Navae_ci_mean <- function(
     }
   }
 
+
   # 3- Determination of the free parameter a_n ---------------------------------
 
-  if (optimize_in_a) {
+  properties_a = list()
 
-    properties_optimal_a <- Get_optimal_a(
+  if (is.numeric(a)){
+    if (a < 1){
+      warning ("a = ", a, " is smaller than 1, so the confidence interval ",
+               "is not theoretically valid.")
+    }
+
+    # Define b_n also in this case for consistency since it is also reported in
+    # the output.
+    b_n <- a - 1
+
+    properties_a = list(method = "provided by user")
+
+  } else if (is.character(a)){
+    if (length(a) != 1){
+      stop("'a' should be of length 1. Here 'a' is of length ", length(a))
+    }
+
+    if (a != "best"){
+      stop("Unknown character option for 'a'. Possible value is: 'best' ",
+           "(for optimal choice of 'a') ",
+           "or specify 'a' to be a numeric value directly.")
+    }
+
+    properties_a <- Get_optimal_a(
       n = n, bound_K = bound_K, alpha = alpha, delta_n = delta_n)
 
-    if (is.na(properties_optimal_a$optimal_a_to_minimize_width)) {
+    if (is.na(properties_a$optimal_a_to_minimize_width)) {
       warning("Optimization in a failed; default choice for a is used.")
 
       # In this case, we revert to a default choice of a since the optimization
       # does not work.
-      optimized_a_is_used <- FALSE
-      properties_optimal_a <- list(use_optimal_a = FALSE)
+      properties_a <- list(use_optimal_a = "failed",
+                           method = "default choice of a")
+
+      a = list(power_of_n_for_b = -2/5)
+
     } else {
-      optimized_a_is_used <- TRUE
-      a <- properties_optimal_a$optimal_a_to_minimize_width
+      a <- properties_a$optimal_a_to_minimize_width
       b_n <- a - 1
+
+      properties_a$method = "optimal"
+      properties_a$use_optimal_a = "successful"
     }
-  } else {
-    optimized_a_is_used <- FALSE
-    properties_optimal_a <- list(use_optimal_a = FALSE)
   }
 
-  if (isFALSE(optimized_a_is_used)) {
-    # Then we do the default choice of a
+  if (is.list(a) ){
 
-    if (is.null(power_of_n_for_b)) {
-      power_of_n_for_b <- -2/5
-    } else {
-      if (!is.numeric(power_of_n_for_b) || (length(power_of_n_for_b) != 1)){
-        stop("`power_of_n_for_b` must be a numeric vector of length 1. ",
-             "Here it is: ", power_of_n_for_b)
-      }
-      if ((power_of_n_for_b > 0) || (power_of_n_for_b <= -1/2)) {
-        warning("The choice of 'power_of_n_for_b' does not satisfy the ",
-                "requirements for asymptotic properties of the resulting CI.")
-      }
+    if (! identical(names(a), "power_of_n_for_b") ){
+      stop("invalid value for 'a'.")
     }
 
-    if (is.null(a)) {
-      b_n <- n^power_of_n_for_b
-      a <- 1 + b_n
-    } else {
-      # Define b_n also in this case for consistency since it is also reported
-      # in the verbose output.
-      b_n <- a - 1
+    power_of_n_for_b = a$power_of_n_for_b
+
+    if (!is.numeric(power_of_n_for_b) || (length(power_of_n_for_b) != 1)){
+      stop("`power_of_n_for_b` must be a numeric vector of length 1. ",
+           "Here it is: ", power_of_n_for_b)
+    }
+    if ((power_of_n_for_b > 0) || (power_of_n_for_b <= -1/2)) {
+      warning("The choice of 'power_of_n_for_b' does not satisfy the ",
+              "requirements for asymptotic properties of the resulting CI.")
+    }
+
+    b_n <- n^power_of_n_for_b
+    a <- 1 + b_n
+
+    if (is.null(properties_a$method)){
+      properties_a$method = "determined from 'power_of_n_for_b'"
     }
   }
+
 
   # 4- Computation of our CI ---------------------------------------------------
 
@@ -346,7 +348,7 @@ Navae_ci_mean <- function(
                 bound_K_value = bound_K,
                 a = a,
                 b_n = b_n,
-                properties_optimal_a = properties_optimal_a,
+                properties_a = properties_a,
                 n = n,
                 call = match.call())
 
