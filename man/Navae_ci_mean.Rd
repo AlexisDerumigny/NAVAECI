@@ -93,6 +93,7 @@ and Berry-Esseen (BE) or Edgeworth Expansions (EE) bounds
 \examples{
 n = 10000
 x = rexp(n, 1)
+Navae_ci_mean(x, bound_K = 9, alpha = 0.2)
 
 Navae_ci_mean(x, bound_K = 9, alpha = 0.2, a = 1 + n^(-2/5))
 # Same as:

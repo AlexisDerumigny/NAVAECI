@@ -84,6 +84,7 @@
 #' @examples
 #' n = 10000
 #' x = rexp(n, 1)
+#' Navae_ci_mean(x, bound_K = 9, alpha = 0.2)
 #'
 #' Navae_ci_mean(x, bound_K = 9, alpha = 0.2, a = 1 + n^(-2/5))
 #' # Same as:
@@ -147,7 +148,7 @@ Navae_ci_mean <- function(
     bound_K_method <- "plug-in"
     bound_K <- Empirical_kurtosis(xi = xi, xi_bar = xi_bar, sigma_hat = sigma_hat)
   } else {
-    bound_K_method <- "bound"
+    bound_K_method <- "provided by user"
   }
 
   delta_n_BE <- BE_bound_Shevtsova(bound_K = bound_K, n = n)
@@ -222,7 +223,7 @@ Navae_ci_mean <- function(
       a <- properties_a$optimal_a_to_minimize_width
       b_n <- a - 1
 
-      properties_a$method = "optimal"
+      properties_a$method = "optimal choice of a"
       properties_a$use_optimal_a = "successful"
     }
   }
@@ -328,16 +329,17 @@ Navae_ci_mean <- function(
     sigma_used_for_CLT <- sqrt(known_variance)
   }
   half_length_CLT <- sigma_used_for_CLT * stats::qnorm(1 - alpha/2) / sqrt(n)
-  ci_CLT <- xi_bar + c(-1, 1) * half_length_CLT
+  ci_asymp <- xi_bar + c(-1, 1) * half_length_CLT
+
 
 
   # 5- Output ------------------------------------------------------------------
 
-  result = list(ci = ci,
+  result = list(ci_navae = ci,
                 indicator_R_regime = indicator_R_regime,
                 known_variance_used = known_variance_used,
                 length_ci = length_ci,
-                ci_CLT = ci_CLT,
+                ci_asymp = ci_asymp,
                 ratio_length_wrt_CLT = ratio_length_wrt_CLT,
                 delta_n = delta_n,
                 delta_n_from = delta_n_from,
