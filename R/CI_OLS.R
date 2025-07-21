@@ -108,7 +108,7 @@
 #' Y = 8 * X1 + true_eps
 #' X = cbind(X1)
 #'
-#' myCI <- Navae_ci_ols(Y, X, K_xi = 3, intercept = TRUE, verbose = 2, a = 1.1)
+#' myCI <- Navae_ci_ols(Y, X, K_xi = 3, intercept = TRUE, a = 1.1)
 #'
 #' print(myCI)
 #'
@@ -144,7 +144,7 @@ Navae_ci_ols <- function(
     intercept = TRUE,
     options = list(center = FALSE, bounded_case = FALSE, with_Exp_regime = FALSE),
     matrix_u = NULL,
-    verbose = 2)
+    verbose = 0)
 {
 
   # 1- Checking the validity of inputs ==================================
