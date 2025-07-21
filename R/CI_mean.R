@@ -60,13 +60,7 @@
 #'
 #' @param na.rm logical, should missing values in \code{data} be removed?
 #'
-#' @param verbose FALSE by default, if TRUE, several additional elements are reported
-#'
-#' @return with \code{verbose = FALSE}, it returns a numerical vector of size 2:
-#' the first element is the lower end of the CI, the second the upper end.
-#' In the \eqn{\mathbb{R}} regime, the CI is \code{(-Inf, Inf)}; otherwise
-#' it is a numeric 2-length vector.
-#' with \code{verbose = TRUE}, a list is output with various elements:
+#' @return A list is output with various elements:
 #' - the CI;
 #' - the classical "asymptotic" CI based on CLT (as a comparison);
 #' - the regime of our CI (indicator of being in \eqn{\mathbb{R}} regime)
@@ -148,7 +142,7 @@ Navae_ci_mean <- function(
     setup = list(continuity = FALSE, iid = TRUE, no_skewness = FALSE),
     regularity = list(C0 = 1, p = 2),
     eps = 0.1),
-  na.rm = FALSE, verbose = FALSE)
+  na.rm = FALSE)
 {
 
   # 1- Checks on data and computation of empirical mean and variance -----------
@@ -300,7 +294,7 @@ Navae_ci_mean <- function(
     known_variance_used <- TRUE
 
     arg_modif_quant <- 1 - alpha/2 + delta_n
-    
+
     C_n <- NA # not defined in the case of known variance; put as NA for output in verbose.
 
     indicator_R_regime <- arg_modif_quant >= 1
@@ -321,24 +315,26 @@ Navae_ci_mean <- function(
     }
 
   }
+  length_ci = ifelse(test = indicator_R_regime,
+                     yes = Inf, no = ci[[2]] - ci[[1]])
+
+  # 4c- Comparison with usual "asymptotic" CI (based on CLT + Slutsky) ---------
+
+  if (is.null(known_variance)) {
+    sigma_used_for_CLT <- sigma_hat
+  } else {
+    sigma_used_for_CLT <- sqrt(known_variance)
+  }
+  half_length_CLT <- sigma_used_for_CLT * stats::qnorm(1 - alpha/2) / sqrt(n)
+  ci_CLT <- xi_bar + c(-1, 1) * half_length_CLT
+
 
   # 5- Output ------------------------------------------------------------------
 
-  if (verbose) {
-
-    # Comparison with usual "asymptotic" CI (based on CLT + Slutsky)
-    if (is.null(known_variance)) {
-      sigma_used_for_CLT <- sigma_hat
-    } else {
-      sigma_used_for_CLT <- sqrt(known_variance)
-    }
-    half_length_CLT <- sigma_used_for_CLT * stats::qnorm(1 - alpha/2) / sqrt(n)
-    ci_CLT <- xi_bar + c(-1, 1) * half_length_CLT
-
-    return(list(ci = ci,
+  result = list(ci = ci,
                 indicator_R_regime = indicator_R_regime,
                 known_variance_used = known_variance_used,
-                length_ci = ifelse(test = indicator_R_regime, yes = Inf, no = ci[[2]] - ci[[1]]),
+                length_ci = length_ci,
                 ci_CLT = ci_CLT,
                 ratio_length_wrt_CLT = ratio_length_wrt_CLT,
                 delta_n = delta_n,
@@ -350,12 +346,15 @@ Navae_ci_mean <- function(
                 bound_K_value = bound_K,
                 a = a,
                 b_n = b_n,
-                properties_optimal_a = properties_optimal_a))
+                properties_optimal_a = properties_optimal_a,
+                n = n,
+                call = match.call())
 
-  } else {
-    return(ci)
-  }
+  class(result) <- "NAVAE_CI_Mean"
+
+  return (result)
 }
+
 
 # Auxiliary functions ----------------------------------------------------------
 

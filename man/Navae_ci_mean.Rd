@@ -15,8 +15,7 @@ Navae_ci_mean(
   known_variance = NULL,
   param_BE_EE = list(choice = "best", setup = list(continuity = FALSE, iid = TRUE,
     no_skewness = FALSE), regularity = list(C0 = 1, p = 2), eps = 0.1),
-  na.rm = FALSE,
-  verbose = FALSE
+  na.rm = FALSE
 )
 }
 \arguments{
@@ -78,15 +77,9 @@ regularity assumptions (continuous or unskewed distribution) and the bound on
 kurtosis used is the one specified in the previous the argument \code{bound_K}.}
 
 \item{na.rm}{logical, should missing values in \code{data} be removed?}
-
-\item{verbose}{FALSE by default, if TRUE, several additional elements are reported}
 }
 \value{
-with \code{verbose = FALSE}, it returns a numerical vector of size 2:
-the first element is the lower end of the CI, the second the upper end.
-In the \eqn{\mathbb{R}} regime, the CI is \code{(-Inf, Inf)}; otherwise
-it is a numeric 2-length vector.
-with \code{verbose = TRUE}, a list is output with various elements:
+A list is output with various elements:
 - the CI;
 - the classical "asymptotic" CI based on CLT (as a comparison);
 - the regime of our CI (indicator of being in \eqn{\mathbb{R}} regime)
