@@ -12,6 +12,14 @@
 #' \code{print.Navae_ci_ols} prints information about \code{x} and returns it
 #' invisibly.
 #'
+#' @examples
+#' n = 10000
+#' x = rexp(n, 1)
+#' myCI = Navae_ci_mean(x, bound_K = 9, alpha = 0.2)
+#'
+#' print(myCI)
+#' as.data.frame(myCI)
+#'
 #'
 #' @export
 print.NAVAE_CI_Mean <- function(x, verbose = 1, ...){
@@ -38,4 +46,21 @@ print.NAVAE_CI_Mean <- function(x, verbose = 1, ...){
   }
 
   return (invisible(x))
+}
+
+
+#' @rdname print.NAVAE_CI_Mean
+#' @export
+as.data.frame.NAVAE_CI_Mean <- function(x, ...){
+  # ci_asymp = as.data.frame(x$ci_asymp)
+  # ci_navae = as.data.frame(x$ci_navae)
+
+  result = rbind(x$ci_asymp, x$ci_navae)
+
+  result = as.data.frame(result)
+
+  result$method = c("Asymptotic (CLT-based)",
+                    paste0("NAVAE (", x$delta_n_from, "-based)"))
+
+  return (result)
 }

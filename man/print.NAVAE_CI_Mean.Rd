@@ -2,9 +2,12 @@
 % Please edit documentation in R/CI_mean_methods.R
 \name{print.NAVAE_CI_Mean}
 \alias{print.NAVAE_CI_Mean}
+\alias{as.data.frame.NAVAE_CI_Mean}
 \title{Printing a NAVAE_CI_Mean object}
 \usage{
 \method{print}{NAVAE_CI_Mean}(x, verbose = 1, ...)
+
+\method{as.data.frame}{NAVAE_CI_Mean}(x, ...)
 }
 \arguments{
 \item{x}{the object}
@@ -15,10 +18,17 @@ to more detailed output.}
 \value{
 \code{print.Navae_ci_ols} prints information about \code{x} and returns it
 invisibly.
-
-\code{print.Navae_ci_ols} prints information about \code{x} and returns it
-invisibly.
 }
 \description{
 Printing a NAVAE_CI_Mean object
+}
+\examples{
+n = 10000
+x = rexp(n, 1)
+myCI = Navae_ci_mean(x, bound_K = 9, alpha = 0.2)
+
+print(myCI)
+as.data.frame(myCI)
+
+
 }
