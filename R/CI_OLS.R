@@ -180,7 +180,7 @@ Navae_ci_ols <- function(
   n <- nrow(X)
 
   # Add a column of ones and take the empirically recentered X if option center set to TRUE.
-  if (intercept){
+  if (intercept) {
     X <- cbind(matrix(1, nrow = n, ncol = 1),
                scale(X, center = options$center, scale = FALSE))
     if (!is.null(colnames(X))) {
@@ -223,16 +223,16 @@ Navae_ci_ols <- function(
   norms_row_X = apply(X = X, MARGIN = 1, FUN = function(u){sqrt(sum(u^2))})
   norms_row_X_tilde = unlist(lapply(X = list_Xtilde_i, FUN = function(u) {sqrt(sum(u^2))}))
 
-  # Regression
-  reg = stats::lm(Y ~ X - 1)
-  betahat = reg$coefficients
-  OLSestimate_u = matrix_u %*% matrix(betahat, ncol = 1)  # u' OLS estimate
-
+  # Regression (without stats::lm - as we already computed inverse_XXt notably)
+  betahat <- inverse_XXt %*% as.matrix(base::.colSums(x = X * Y, m = n, n = p), ncol = 1)
+  OLSestimate_u <- matrix_u %*% betahat # u' OLS estimate
+  residuals <- Y - c(X %*% betahat)
+  
   # Computation of Vhat
-  Vhat = n * inverse_XXt %*% (crossprod(X * reg$residuals)) %*% inverse_XXt
+  Vhat = n * inverse_XXt %*% (crossprod(X * residuals)) %*% inverse_XXt
   Vhat_u = apply(X = matrix_u, MARGIN = 1, FUN = function(u){t(u) %*% Vhat %*% u})
 
-
+  
   # 3- Setting the parameters omega and a if not provided ======================
 
   allTuningParameters = .computeTuningParameters_OLS(
@@ -275,7 +275,7 @@ Navae_ci_ols <- function(
 
   Rnvar_u <- Compute_Rnvar(
     gamma = gamma, n = n, norms_row_X = norms_row_X,
-    residuals = reg$residuals, bounds = bounds,
+    residuals = residuals, bounds = bounds,
     gammatilde = concentr_XXtranspose,
     X = X, inverse_XXtbar = inverse_XXtbar, matrix_u = matrix_u)
 
@@ -753,7 +753,7 @@ computeBounds <- function(env, verbose = 2)
 
   if (is.null(env$bounds$K_eps)) {
 
-    env$bounds$K_eps <- mean(env$norms_row_X_tilde^4 * env$reg$residuals^4)
+    env$bounds$K_eps <- mean(env$norms_row_X_tilde^4 * env$residuals^4)
     allBounds[3, ] = data.frame(name   = "K_eps",
                                 value  = env$bounds$K_eps,
                                 method = "plug-in")
@@ -777,7 +777,7 @@ computeBounds <- function(env, verbose = 2)
       args = lapply(X = 1:env$n,
                     FUN = Compute_xi_u_for_one_obs_i,
                     dataX = env$X, inverse_XXtbar = env$inverse_XXtbar,
-                    matrix_u = env$matrix_u, residuals = env$reg$residuals))
+                    matrix_u = env$matrix_u, residuals = env$residuals))
 
     mean_xi4_u <- rowMeans(xi_u_i^4)
     mean_xi2_u <- rowMeans(xi_u_i^2)
