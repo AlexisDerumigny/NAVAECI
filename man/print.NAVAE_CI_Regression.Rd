@@ -46,7 +46,9 @@ with the following columns:
 }
 }
 \description{
-Print and coerce a NAVAE_CI_Regression object
+This also displays CLT-based confidence intervals. The results are different
+from the confidence intervals that can be obtained via \code{confint(lm( ))}
+since they are robust to heteroscedasticity.
 }
 \examples{
 n = 4000
