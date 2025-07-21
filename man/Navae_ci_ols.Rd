@@ -98,19 +98,7 @@ the progress of the computations and, in particular, the different terms that
 are computed.}
 }
 \value{
-This function returns a data frame consisting of an observation
-for each vector u given as a line of \code{matrix_u},
-with the following columns: \itemize{
-   \item \code{lower}: lower bound of the confidence interval
-   \item \code{upper}: upper bound of the confidence interval
-   \item \code{regime}: the regime used for the computation of the CI.
-   Four regimes are possible: \itemize{
-       \item the degenerate regimes \code{R1} and \code{R2} in which
-       the confidence interval is \code{(-Inf, Inf)}.
-       \item the exponential regime \code{Exp}
-       \item the Edgeworth regime \code{Edg}.
-   }
-}
+\code{Navae_ci_ols} returns an object of class \code{NAVAE_CI_Regression}.
 }
 \description{
 Compute NAVAE CI for coefficients of a linear regression based on
@@ -148,6 +136,10 @@ Sankhya A. \doi{10.1007/s13171-023-00320-y}
 \href{https://arxiv.org/abs/2101.05780}{arxiv:2101.05780}.
 }
 \seealso{
-\code{\link{Navae_ci_mean}} the corresponding function for the
-estimation of the mean.
+The methods to display and process the output of this function:
+\code{\link{print.NAVAE_CI_Regression}} and
+\code{\link{as.data.frame.NAVAE_CI_Regression}}.
+
+\code{\link{Navae_ci_mean}} the corresponding function for the estimation of
+the mean.
 }

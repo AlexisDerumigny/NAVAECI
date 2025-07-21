@@ -75,19 +75,8 @@
 #' are computed.
 #'
 #'
-#' @return This function returns a data frame consisting of an observation
-#' for each vector u given as a line of \code{matrix_u},
-#' with the following columns: \itemize{
-#'    \item \code{lower}: lower bound of the confidence interval
-#'    \item \code{upper}: upper bound of the confidence interval
-#'    \item \code{regime}: the regime used for the computation of the CI.
-#'    Four regimes are possible: \itemize{
-#'        \item the degenerate regimes \code{R1} and \code{R2} in which
-#'        the confidence interval is \code{(-Inf, Inf)}.
-#'        \item the exponential regime \code{Exp}
-#'        \item the Edgeworth regime \code{Edg}.
-#'    }
-#' }
+#' @return \code{Navae_ci_ols} returns an object of class \code{NAVAE_CI_Regression}.
+#'
 #'
 #' @references
 #' For the Edgeworth expansion bounds:
@@ -98,8 +87,14 @@
 #' \href{https://arxiv.org/abs/2101.05780}{arxiv:2101.05780}.
 #'
 #'
-#' @seealso \code{\link{Navae_ci_mean}} the corresponding function for the
-#' estimation of the mean.
+#' @seealso
+#' The methods to display and process the output of this function:
+#' \code{\link{print.NAVAE_CI_Regression}} and
+#' \code{\link{as.data.frame.NAVAE_CI_Regression}}.
+#'
+#' \code{\link{Navae_ci_mean}} the corresponding function for the estimation of
+#' the mean.
+#'
 #'
 #' @examples
 #' n = 4000
@@ -529,21 +524,27 @@ Navae_ci_ols <- function(
     cat("\n")
   }
 
-  return(list(ci_navae = ci_navae,
-              ci_asymp = ci_asymp,
-              allTuningParameters = allTuningParameters,
-              allBounds = allBounds,
-              about_delta_n = about_delta_n,
-              ratio_length_wrt_ci_asymp = ratio_length_wrt_ci_asymp,
-              nu_n_Edg_u = nu_n_Edg_u,
-              nu_n_Approx_u = nu_n_Approx_u,
-              bound_Voracle = bound_Voracle,
-              Rnlin_u = Rnlin_u,
-              Rnvar_u = Rnvar_u,
-              Rnvar_u_times_norm_u_squared = Rnvar_u_times_norm_u_squared,
-              minimal_alpha_to_enter_Edg_regime = minimal_alpha_to_enter_Edg_regime,
-              S = XXtbar))
+  result = list(ci_navae = ci_navae,
+                ci_asymp = ci_asymp,
+                allTuningParameters = allTuningParameters,
+                allBounds = allBounds,
+                about_delta_n = about_delta_n,
+                ratio_length_wrt_ci_asymp = ratio_length_wrt_ci_asymp,
+                nu_n_Edg_u = nu_n_Edg_u,
+                nu_n_Approx_u = nu_n_Approx_u,
+                bound_Voracle = bound_Voracle,
+                Rnlin_u = Rnlin_u,
+                Rnvar_u = Rnvar_u,
+                Rnvar_u_times_norm_u_squared = Rnvar_u_times_norm_u_squared,
+                minimal_alpha_to_enter_Edg_regime = minimal_alpha_to_enter_Edg_regime,
+                S = XXtbar,
+                call = match.call())
+
+  class(result) <- "NAVAE_CI_Regression"
+
+  return (result)
 }
+
 
 # Auxiliary functions ----------------------------------------------------------
 
