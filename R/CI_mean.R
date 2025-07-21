@@ -331,6 +331,7 @@ Navae_ci_mean <- function(
   half_length_CLT <- sigma_used_for_CLT * stats::qnorm(1 - alpha/2) / sqrt(n)
   ci_asymp <- xi_bar + c(-1, 1) * half_length_CLT
 
+  names(ci_asymp) <- names(ci) <- paste0(100 * c(alpha/2, 1 - alpha/2), " %")
 
 
   # 5- Output ------------------------------------------------------------------
@@ -352,7 +353,8 @@ Navae_ci_mean <- function(
                 b_n = b_n,
                 properties_a = properties_a,
                 n = n,
-                call = match.call())
+                call = match.call(),
+                alpha = alpha)
 
   class(result) <- "NAVAE_CI_Mean"
 

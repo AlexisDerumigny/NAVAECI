@@ -538,7 +538,8 @@ Navae_ci_ols <- function(
                 Rnvar_u_times_norm_u_squared = Rnvar_u_times_norm_u_squared,
                 minimal_alpha_to_enter_Edg_regime = minimal_alpha_to_enter_Edg_regime,
                 S = XXtbar,
-                call = match.call())
+                call = match.call(),
+                alpha = alpha)
 
   class(result) <- "NAVAE_CI_Regression"
 

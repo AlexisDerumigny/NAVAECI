@@ -60,6 +60,15 @@ print.NAVAE_CI_Regression <- function(x, verbose = 0, ...){
   cat(paste(deparse(x$call), sep = "\n", collapse = "\n"))
   cat("\n\n")
 
+  alpha <- x$alpha
+
+  where_unspecified = match(c("lower", "upper"), names(x$ci_asymp))
+  names(x$ci_asymp)[where_unspecified] <- paste0(100 * c(alpha/2, 1 - alpha/2), " %")
+
+  where_unspecified = match(c("lower", "upper"), names(x$ci_navae))
+  names(x$ci_navae)[where_unspecified] <- paste0(100 * c(alpha/2, 1 - alpha/2), " %")
+
+
   cat("CLT-based confidence intervals:\n")
 
   print(x$ci_asymp)
