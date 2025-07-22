@@ -14,10 +14,14 @@
 
 \item{verbose}{if zero, only basic printing is done. Higher values corresponds
 to more detailed output.}
+
+\item{...}{other arguments, currently ignored.}
 }
 \value{
 \code{print.Navae_ci_ols} prints information about \code{x} and returns it
 invisibly.
+
+\code{as.data.frame} returns a dataframe with 2 rows.
 }
 \description{
 Printing a NAVAE_CI_Mean object

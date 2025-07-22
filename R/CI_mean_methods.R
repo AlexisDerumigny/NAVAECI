@@ -7,10 +7,15 @@
 #' @param verbose if zero, only basic printing is done. Higher values corresponds
 #' to more detailed output.
 #'
+#' @param ... other arguments, currently ignored.
+#'
 #'
 #' @returns
 #' \code{print.Navae_ci_ols} prints information about \code{x} and returns it
 #' invisibly.
+#'
+#' \code{as.data.frame} returns a dataframe with 2 rows.
+#'
 #'
 #' @examples
 #' n = 10000
