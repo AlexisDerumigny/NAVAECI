@@ -34,3 +34,20 @@ test_that("Navae_ci_mean works with different kinds of 'a' inputs", {
 
   expect_identical(result4$a, result5$a)
 })
+
+test_that("Navae_ci_mean works in the known variance case", {
+  n = 10000
+
+  x = rexp(n, 1)
+
+  result1 = Navae_ci_mean(x, bound_K = 9, known_variance = 1)
+
+  result2 = Navae_ci_mean(x, bound_K = 9, known_variance = 1, a = 6)
+
+  result3 = Navae_ci_mean(x, bound_K = 9, known_variance = 2)
+
+  expect_identical(result1$ci_navae, result2$ci_navae)
+
+  expect_true(! identical(result1$ci_navae , result3$ci_navae) )
+})
+

@@ -183,73 +183,76 @@ Navae_ci_mean <- function(
 
   properties_a = list()
 
-  if (is.numeric(a)){
-    if (a < 1){
-      warning ("a = ", a, " is smaller than 1, so the confidence interval ",
-               "is not theoretically valid.")
-    }
+  if (is.null(known_variance)){
 
-    # Define b_n also in this case for consistency since it is also reported in
-    # the output.
-    b_n <- a - 1
+    if (is.numeric(a)){
+      if (a < 1){
+        warning ("a = ", a, " is smaller than 1, so the confidence interval ",
+                 "is not theoretically valid.")
+      }
 
-    properties_a = list(method = "provided by user")
-
-  } else if (is.character(a)){
-    if (length(a) != 1){
-      stop("'a' should be of length 1. Here 'a' is of length ", length(a))
-    }
-
-    if (a != "best"){
-      stop("Unknown character option for 'a'. Possible value is: 'best' ",
-           "(for optimal choice of 'a') ",
-           "or specify 'a' to be a numeric value directly.")
-    }
-
-    properties_a <- Get_optimal_a(
-      n = n, bound_K = bound_K, alpha = alpha, delta_n = delta_n)
-
-    if (is.na(properties_a$optimal_a_to_minimize_width)) {
-      warning("Optimization in a failed; default choice for a is used.")
-
-      # In this case, we revert to a default choice of a since the optimization
-      # does not work.
-      properties_a <- list(use_optimal_a = "failed",
-                           method = "default choice of a")
-
-      a = list(power_of_n_for_b = -2/5)
-
-    } else {
-      a <- properties_a$optimal_a_to_minimize_width
+      # Define b_n also in this case for consistency since it is also reported in
+      # the output.
       b_n <- a - 1
 
-      properties_a$method = "optimal choice of a"
-      properties_a$use_optimal_a = "successful"
+      properties_a = list(method = "provided by user")
+
+    } else if (is.character(a)){
+      if (length(a) != 1){
+        stop("'a' should be of length 1. Here 'a' is of length ", length(a))
+      }
+
+      if (a != "best"){
+        stop("Unknown character option for 'a'. Possible value is: 'best' ",
+             "(for optimal choice of 'a') ",
+             "or specify 'a' to be a numeric value directly.")
+      }
+
+      properties_a <- Get_optimal_a(
+        n = n, bound_K = bound_K, alpha = alpha, delta_n = delta_n)
+
+      if (is.na(properties_a$optimal_a_to_minimize_width)) {
+        warning("Optimization in a failed; default choice for a is used.")
+
+        # In this case, we revert to a default choice of a since the optimization
+        # does not work.
+        properties_a <- list(use_optimal_a = "failed",
+                             method = "default choice of a")
+
+        a = list(power_of_n_for_b = -2/5)
+
+      } else {
+        a <- properties_a$optimal_a_to_minimize_width
+        b_n <- a - 1
+
+        properties_a$method = "optimal choice of a"
+        properties_a$use_optimal_a = "successful"
+      }
     }
-  }
 
-  if (is.list(a) ){
+    if (is.list(a) ){
 
-    if (! identical(names(a), "power_of_n_for_b") ){
-      stop("invalid value for 'a'.")
-    }
+      if (! identical(names(a), "power_of_n_for_b") ){
+        stop("invalid value for 'a'.")
+      }
 
-    power_of_n_for_b = a$power_of_n_for_b
+      power_of_n_for_b = a$power_of_n_for_b
 
-    if (!is.numeric(power_of_n_for_b) || (length(power_of_n_for_b) != 1)){
-      stop("`power_of_n_for_b` must be a numeric vector of length 1. ",
-           "Here it is: ", power_of_n_for_b)
-    }
-    if ((power_of_n_for_b > 0) || (power_of_n_for_b <= -1/2)) {
-      warning("The choice of 'power_of_n_for_b' does not satisfy the ",
-              "requirements for asymptotic properties of the resulting CI.")
-    }
+      if (!is.numeric(power_of_n_for_b) || (length(power_of_n_for_b) != 1)){
+        stop("`power_of_n_for_b` must be a numeric vector of length 1. ",
+             "Here it is: ", power_of_n_for_b)
+      }
+      if ((power_of_n_for_b > 0) || (power_of_n_for_b <= -1/2)) {
+        warning("The choice of 'power_of_n_for_b' does not satisfy the ",
+                "requirements for asymptotic properties of the resulting CI.")
+      }
 
-    b_n <- n^power_of_n_for_b
-    a <- 1 + b_n
+      b_n <- n^power_of_n_for_b
+      a <- 1 + b_n
 
-    if (is.null(properties_a$method)){
-      properties_a$method = "determined from 'power_of_n_for_b'"
+      if (is.null(properties_a$method)){
+        properties_a$method = "determined from 'power_of_n_for_b'"
+      }
     }
   }
 
@@ -350,7 +353,6 @@ Navae_ci_mean <- function(
                 bound_K_method = bound_K_method,
                 bound_K_value = bound_K,
                 a = a,
-                b_n = b_n,
                 properties_a = properties_a,
                 n = n,
                 call = match.call(),
