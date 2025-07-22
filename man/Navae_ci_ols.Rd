@@ -10,9 +10,7 @@ Navae_ci_ols(
   X,
   alpha = 0.05,
   a = NULL,
-  power_of_n_for_b = NULL,
   omega = NULL,
-  power_of_n_for_omega = NULL,
   bounds = list(lambda_reg = NULL, K_reg = NULL, K_eps = NULL, K_xi = NULL, C = NULL, B =
     NULL),
   K_xi = NULL,
@@ -36,9 +34,35 @@ of \code{Y}.}
 the nominal level is 1 - alpha.
 By default, \code{alpha} is set to 0.05, yielding a 95\% CI.}
 
-\item{a}{the tuning parameter \eqn{a} of the interval}
+\item{a}{the free parameter \eqn{a} (or \eqn{a_n}) of the interval.
+It must be either \itemize{
+  \item a numeric value larger than 1, taken as the value of \eqn{a},
 
-\item{omega}{the tuning parameter \eqn{\omega} of the interval}
+  \item the character value \code{"best"} which is the default. It selects the
+  \code{a} such that the confidence interval has the smallest length.
+
+  \item a list such as \code{list(power_of_n_for_b = -2/5)} giving a way to
+  compute \code{a} as \code{a = 1 + n^power_of_n_for_b}. Note that \code{-2/5}
+  is the optimal (theoretical) rate.
+
+  \item \code{NULL}, interpreted as the default value
+  \code{a = 1 + 100 * n^(-2/5)}.
+}}
+
+\item{omega}{the free parameter \eqn{omega} (or \eqn{omega_n}) of the interval.
+It must be either \itemize{
+  \item a numeric value larger than 1, taken as the value of \eqn{omega},
+
+  \item the character value \code{"best"} which is the default. It selects the
+  \code{omega} such that the confidence interval has the smallest length.
+
+  \item a list such as \code{list(power_of_n_for_omega = -1/5)} giving a way to
+  compute \code{omega} as \code{omega = n^power_of_n_for_omega}.
+  Note that \code{-1/5} is the optimal (theoretical) rate.
+
+  \item \code{NULL}, interpreted as the default value
+  \code{omega = n^(-1/5)}.
+}}
 
 \item{bounds, K_xi}{list of bounds for the DGP. Note that \code{K_xi} can also
 be provided as a separate argument, for convenience.
@@ -86,6 +110,8 @@ Otherwise, \code{param_BE_EE} is a list of four objects: \itemize{
   \item \code{regularity}: itself a list of length up to 3,
   \item \code{eps}: value between 0 and 1/3,
 }}
+
+\item{options}{a list of other options.}
 
 \item{matrix_u}{each row of this matrix is understood as a new vector u
 for which a confidence interval should be computed.

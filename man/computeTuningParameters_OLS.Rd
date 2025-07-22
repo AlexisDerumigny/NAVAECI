@@ -6,13 +6,7 @@
 \title{Compute tuning parameters for the NAVAE confidence interval in the
 linear regression case}
 \usage{
-.computeTuningParameters_OLS(
-  n,
-  a = NULL,
-  power_of_n_for_b = NULL,
-  omega = NULL,
-  power_of_n_for_omega = NULL
-)
+.computeTuningParameters_OLS(n, a = NULL, omega = NULL)
 
 \method{print}{NAVAE_CI_OLS_TuningParameters}(x, ...)
 }
@@ -21,13 +15,7 @@ linear regression case}
 
 \item{a}{parameter a in the function \code{\link{Navae_ci_ols}}}
 
-\item{power_of_n_for_b}{parameter \eqn{t} in the choice of \eqn{a} given by
-\eqn{a = 100 * n^(-t)}.}
-
 \item{omega}{parameter omega in the function \code{\link{Navae_ci_ols}}}
-
-\item{power_of_n_for_omega}{parameter \eqn{t} in the choice of \eqn{omega}
-given by \eqn{omega = n^(-t)}.}
 
 \item{x}{object to be printed}
 
@@ -49,8 +37,8 @@ linear regression case
 
 .computeTuningParameters_OLS(n = 1000)
 .computeTuningParameters_OLS(n = 1000, a = 2)
-.computeTuningParameters_OLS(n = 1000, power_of_n_for_b = -1/3)
+.computeTuningParameters_OLS(n = 1000, a = list(power_of_n_for_b = -1/3))
 .computeTuningParameters_OLS(n = 1000, omega = 0.2)
-.computeTuningParameters_OLS(n = 1000, power_of_n_for_omega = -0.2)
+.computeTuningParameters_OLS(n = 1000, omega = list(power_of_n_for_omega = -0.2))
 
 }

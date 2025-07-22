@@ -12,8 +12,38 @@
 #' the nominal level is 1 - alpha.
 #' By default, \code{alpha} is set to 0.05, yielding a 95\% CI.
 #'
-#' @param omega the tuning parameter \eqn{\omega} of the interval
-#' @param a the tuning parameter \eqn{a} of the interval
+#' @param a the free parameter \eqn{a} (or \eqn{a_n}) of the interval.
+#' It must be either \itemize{
+#'   \item a numeric value larger than 1, taken as the value of \eqn{a},
+#'
+#'   \item the character value \code{"best"} which is the default. It selects the
+#'   \code{a} such that the confidence interval has the smallest length.
+#'
+#'   \item a list such as \code{list(power_of_n_for_b = -2/5)} giving a way to
+#'   compute \code{a} as \code{a = 1 + n^power_of_n_for_b}. Note that \code{-2/5}
+#'   is the optimal (theoretical) rate.
+#'
+#'   \item \code{NULL}, interpreted as the default value
+#'   \code{a = 1 + 100 * n^(-2/5)}.
+#' }
+#'
+#'
+#' @param omega the free parameter \eqn{omega} (or \eqn{omega_n}) of the interval.
+#' It must be either \itemize{
+#'   \item a numeric value larger than 1, taken as the value of \eqn{omega},
+#'
+#'   \item the character value \code{"best"} which is the default. It selects the
+#'   \code{omega} such that the confidence interval has the smallest length.
+#'
+#'   \item a list such as \code{list(power_of_n_for_omega = -1/5)} giving a way to
+#'   compute \code{omega} as \code{omega = n^power_of_n_for_omega}.
+#'   Note that \code{-1/5} is the optimal (theoretical) rate.
+#'
+#'   \item \code{NULL}, interpreted as the default value
+#'   \code{omega = n^(-1/5)}.
+#' }
+#'
+#'
 #' @param bounds,K_xi list of bounds for the DGP. Note that \code{K_xi} can also
 #' be provided as a separate argument, for convenience.
 #' It can contain the following items: \itemize{
@@ -74,6 +104,8 @@
 #' the progress of the computations and, in particular, the different terms that
 #' are computed.
 #'
+#' @param options a list of other options.
+#'
 #'
 #' @return \code{Navae_ci_ols} returns an object of class \code{NAVAE_CI_Regression}.
 #'
@@ -122,9 +154,7 @@
 #'
 Navae_ci_ols <- function(
     Y, X,
-    alpha = 0.05,
-    a = NULL, power_of_n_for_b = NULL,
-    omega = NULL, power_of_n_for_omega = NULL,
+    alpha = 0.05, a = NULL, omega = NULL,
     bounds = list(lambda_reg = NULL,
                   K_reg = NULL,
                   K_eps = NULL,
@@ -235,9 +265,7 @@ Navae_ci_ols <- function(
 
   # 3- Setting the parameters omega and a if not provided ======================
 
-  allTuningParameters = .computeTuningParameters_OLS(
-    n = n, a = a,  power_of_n_for_b = power_of_n_for_b,
-    omega = omega, power_of_n_for_omega = power_of_n_for_omega)
+  allTuningParameters = .computeTuningParameters_OLS(n = n, a = a, omega = omega)
 
   a = allTuningParameters$a$value
   omega = allTuningParameters$omega$value
@@ -865,11 +893,7 @@ computeBounds <- function(env, verbose = 2)
 #'
 #' @param n sample size
 #' @param a parameter a in the function \code{\link{Navae_ci_ols}}
-#' @param power_of_n_for_b parameter \eqn{t} in the choice of \eqn{a} given by
-#' \eqn{a = 100 * n^(-t)}.
 #' @param omega parameter omega in the function \code{\link{Navae_ci_ols}}
-#' @param power_of_n_for_omega parameter \eqn{t} in the choice of \eqn{omega}
-#' given by \eqn{omega = n^(-t)}.
 #'
 #' @param x object to be printed
 #' @param ... other arguments to passed to \code{print}, currently unused.
@@ -885,43 +909,42 @@ computeBounds <- function(env, verbose = 2)
 #'
 #' .computeTuningParameters_OLS(n = 1000)
 #' .computeTuningParameters_OLS(n = 1000, a = 2)
-#' .computeTuningParameters_OLS(n = 1000, power_of_n_for_b = -1/3)
+#' .computeTuningParameters_OLS(n = 1000, a = list(power_of_n_for_b = -1/3))
 #' .computeTuningParameters_OLS(n = 1000, omega = 0.2)
-#' .computeTuningParameters_OLS(n = 1000, power_of_n_for_omega = -0.2)
+#' .computeTuningParameters_OLS(n = 1000, omega = list(power_of_n_for_omega = -0.2))
 #'
 #' @rdname computeTuningParameters_OLS
 #' @export
-.computeTuningParameters_OLS <- function(n, a = NULL, power_of_n_for_b = NULL,
-                                         omega = NULL, power_of_n_for_omega = NULL){
+.computeTuningParameters_OLS <- function(n, a = NULL, omega = NULL){
 
   result = list()
 
+
   # Parameter a  ===============================================================
 
-  if(!is.null(a)){
-    if (!is.numeric(a) || length(a) != 1 ) {
-      stop("'a' should be `NULL` or a numeric vector of size 1.")
+  if (is.null(a)){
+    a = list(power_of_n_for_b = list(value = -2/5,
+                                      method = "default value"))
+  }
+
+  if (is.numeric(a)){
+    if (length(a) != 1){
+      stop("'a' is not correctly specified.",
+           "If 'a' is given as a numeric vector, it must be of length 1.")
     }
 
     result$a = list(value = a,
                     method = "provided by user")
-  } else {
+  } else if (is.list(a)){
+    power_of_n_for_b = a$power_of_n_for_b
 
-    if (!is.null(power_of_n_for_b)) {
-      if (!is.numeric(power_of_n_for_b) || length(power_of_n_for_b) != 1 ) {
-        stop("'power_of_n_for_b' should be `NULL` or a numeric vector of size 1.")
-      }
-      if ((power_of_n_for_b > 0) || (power_of_n_for_b <= -1/2)) {
-        warning("The choice of 'power_of_n_for_b' does not satisfy the ",
-                "requirements for asymptotic properties of the resulting CI.",
-                "It should be in the interval (-1/2; 0].")
-      }
-
+    if (is.null(power_of_n_for_b)){
+      stop("'a' is not correctly specified. If 'a' is given as a list, ",
+           "it must include an element called 'power_of_n_for_b'.")
+    }
+    if (is.numeric(power_of_n_for_b)){
       power_of_n_for_b = list(value = power_of_n_for_b,
                               method = "provided by user")
-    } else {
-      power_of_n_for_b = list(value = -2/5,
-                              method = "default value")
     }
 
     b_n <- 100 * n^power_of_n_for_b$value
@@ -930,26 +953,38 @@ computeBounds <- function(env, verbose = 2)
     result$a = list(value = a,
                     method = "computed from 'power_of_n_for_b'",
                     b_n = b_n,
-                    power_of_n_for_b = power_of_n_for_b
-    )
+                    power_of_n_for_b = power_of_n_for_b)
+  } else {
+
+    stop("'a' is not correctly specified. It must be `NULL` or a numeric vector ",
+         "of length 1, or a list containing a numeric value called `power_of_n_for_b`.")
   }
 
 
   # Parameter omega  ===========================================================
 
-  if (!is.null(omega)){
-    if (!is.numeric(omega) || length(omega) != 1 ) {
-      stop("'omega' should be `NULL` or a numeric vector of size 1.")
+  if (is.null(omega)){
+    omega = list(power_of_n_for_omega = list(value = -1/5,
+                                             method = "default value"))
+  }
+
+  if (is.numeric(omega)){
+    if (length(omega) != 1){
+      stop("'omega' is not correctly specified.",
+           "If 'omega' is given as a numeric vector, it must be of length 1.")
     }
 
     result$omega = list(value = omega,
                         method = "provided by user")
-  } else {
+  } else if (is.list(omega)){
+    power_of_n_for_omega = omega$power_of_n_for_omega
 
-    if (!is.null(power_of_n_for_omega)) {
-      if (!is.numeric(power_of_n_for_omega) || length(power_of_n_for_omega) != 1 ) {
-        stop("'power_of_n_for_omega' should be `NULL` or a numeric vector of size 1.")
-      }
+    if (is.null(power_of_n_for_omega)){
+      stop("'omega' is not correctly specified. If 'omega' is given as a list, ",
+           "it must include an element called 'power_of_n_for_omega'.")
+    }
+    if (is.numeric(power_of_n_for_omega)){
+
       if ((power_of_n_for_omega > 0) || (power_of_n_for_omega <= -2/3)) {
         warning("The choice of 'power_of_n_for_omega' does not satisfy the ",
                 "requirements for asymptotic properties of the resulting CI.",
@@ -957,19 +992,21 @@ computeBounds <- function(env, verbose = 2)
       }
 
       power_of_n_for_omega = list(value = power_of_n_for_omega,
-                                  method = "provided by user")
-    } else {
-      power_of_n_for_omega = list(value = -1/5,
-                                  method = "default value")
+                              method = "provided by user")
     }
 
     omega <- n^power_of_n_for_omega$value
 
     result$omega = list(value = omega,
                         method = "computed from 'power_of_n_for_omega'",
-                        power_of_n_for_omega = power_of_n_for_omega
-    )
+                        power_of_n_for_omega = power_of_n_for_omega)
+  } else {
+
+    stop("'omega' is not correctly specified. It must be `NULL` or a numeric vector ",
+         "of length 1, or a list containing a numeric value ",
+         "called `power_of_n_for_omega`.")
   }
+
 
   class(result) <- "NAVAE_CI_OLS_TuningParameters"
 
