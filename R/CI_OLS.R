@@ -132,10 +132,9 @@
 #' n = 4000
 #' X1 = rnorm(n, sd = 1)
 #' true_eps = rnorm(n)
-#' Y = 8 * X1 + true_eps
-#' X = cbind(X1)
+#' Y = 2 + 8 * X1 + true_eps
 #'
-#' myCI <- Navae_ci_ols(Y, X, K_xi = 3, intercept = TRUE, a = 1.1)
+#' myCI <- Navae_ci_ols(Y, X1, K_xi = 3, a = 1.1)
 #'
 #' print(myCI)
 #'
