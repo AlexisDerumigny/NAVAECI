@@ -5,7 +5,7 @@
 \alias{as.data.frame.NAVAE_CI_Mean}
 \title{Printing a NAVAE_CI_Mean object}
 \usage{
-\method{print}{NAVAE_CI_Mean}(x, verbose = 1, ...)
+\method{print}{NAVAE_CI_Mean}(x, verbose = 0, ...)
 
 \method{as.data.frame}{NAVAE_CI_Mean}(x, ...)
 }

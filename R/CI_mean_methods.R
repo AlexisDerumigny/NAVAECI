@@ -27,7 +27,7 @@
 #'
 #'
 #' @export
-print.NAVAE_CI_Mean <- function(x, verbose = 1, ...){
+print.NAVAE_CI_Mean <- function(x, verbose = 0, ...){
 
   cat("Call: ")
   cat(paste(deparse(x$call), sep = "\n", collapse = "\n"))
