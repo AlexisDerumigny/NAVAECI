@@ -111,15 +111,15 @@
 #' @export
 #'
 Navae_ci_mean <- function(
-  data, alpha = 0.05,
-  a = "best",
-  bound_K = NULL, known_variance = NULL,
-  param_BE_EE = list(
-    choice = "best",
-    setup = list(continuity = FALSE, iid = TRUE, no_skewness = FALSE),
-    regularity = list(C0 = 1, p = 2),
-    eps = 0.1),
-  na.rm = FALSE)
+    data, alpha = 0.05,
+    a = "best",
+    bound_K = NULL, known_variance = NULL,
+    param_BE_EE = list(
+      choice = "best",
+      setup = list(continuity = FALSE, iid = TRUE, no_skewness = FALSE),
+      regularity = list(C0 = 1, p = 2),
+      eps = 0.1),
+    na.rm = FALSE)
 {
 
   # 1- Checks on data and computation of empirical mean and variance -----------
@@ -455,9 +455,9 @@ Get_optimal_a <- function(n, bound_K, alpha, delta_n)
   while(try_find_a_2){
     res_uniroot_a_2  <- tryCatch(
       stats::uniroot(f = f_R_regime_if_non_negative,
-              # We do not start at 1 if not we may find the other root a_1 again (!)
-              lower = res_optim_condition_R_regime$par,
-              upper = max_a_tested_for_optim),
+                     # We do not start at 1 if not we may find the other root a_1 again (!)
+                     lower = res_optim_condition_R_regime$par,
+                     upper = max_a_tested_for_optim),
       error = function(e) e
     )
     if (inherits(res_uniroot_a_2, "error")){
