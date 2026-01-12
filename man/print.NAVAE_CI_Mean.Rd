@@ -47,6 +47,6 @@ ArXiv preprint, \doi{10.48550/arXiv.2507.16776}
 The function to generate such objects \code{\link{Navae_ci_mean}}.
 
 The corresponding methods for the regression (OLS):
-\code{\link{print.NAVAE_CI_Regression}} and
-\code{\link{as.data.frame.NAVAE_CI_Regression}}.
+\code{\link{print.NAVAE_CI_OLS}} and
+\code{\link{as.data.frame.NAVAE_CI_OLS}}.
 }

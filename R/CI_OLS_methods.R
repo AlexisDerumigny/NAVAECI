@@ -1,6 +1,6 @@
 
 
-#' Print and coerce a NAVAE_CI_Regression object
+#' Print and coerce a NAVAE_CI_OLS object
 #'
 #' This also displays CLT-based confidence intervals. The results are different
 #' from the confidence intervals that can be obtained via \code{confint(lm( ))}
@@ -17,7 +17,7 @@
 #' \code{print.Navae_ci_ols} prints information about \code{x} and returns it
 #' invisibly.
 #'
-#' \code{as.data.frame.NAVAE_CI_Regression} returns a data frame consisting
+#' \code{as.data.frame.NAVAE_CI_OLS} returns a data frame consisting
 #' of two observations for each vector u given as a line of \code{matrix_u},
 #' with the following columns:
 #' \itemize{
@@ -69,7 +69,7 @@
 #'
 #'
 #' @export
-print.NAVAE_CI_Regression <- function(x, verbose = 0, ...){
+print.NAVAE_CI_OLS <- function(x, verbose = 0, ...){
   cat("Call: ")
   cat(paste(deparse(x$call), sep = "\n", collapse = "\n"))
   cat("\n\n")
@@ -107,9 +107,9 @@ print.NAVAE_CI_Regression <- function(x, verbose = 0, ...){
 }
 
 
-#' @rdname print.NAVAE_CI_Regression
+#' @rdname print.NAVAE_CI_OLS
 #' @export
-as.data.frame.NAVAE_CI_Regression <- function(x, ...){
+as.data.frame.NAVAE_CI_OLS <- function(x, ...){
   ci_asymp = x$ci_asymp
   ci_navae = x$ci_navae
 

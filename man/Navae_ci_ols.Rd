@@ -124,7 +124,7 @@ the progress of the computations and, in particular, the different terms that
 are computed.}
 }
 \value{
-\code{Navae_ci_ols} returns an object of class \code{NAVAE_CI_Regression},
+\code{Navae_ci_ols} returns an object of class \code{NAVAE_CI_OLS},
 containing
 \itemize{
   \item \code{ci_navae}: the NAVAE confidence interval
@@ -181,8 +181,8 @@ ArXiv preprint: \doi{10.48550/arxiv.2101.05780}.
 }
 \seealso{
 The methods to display and process the output of this function:
-\code{\link{print.NAVAE_CI_Regression}} and
-\code{\link{as.data.frame.NAVAE_CI_Regression}}.
+\code{\link{print.NAVAE_CI_OLS}} and
+\code{\link{as.data.frame.NAVAE_CI_OLS}}.
 
 \code{\link{Navae_ci_mean}} which is the corresponding function for the
 estimation of the mean.

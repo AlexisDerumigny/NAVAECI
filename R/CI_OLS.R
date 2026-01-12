@@ -107,7 +107,7 @@
 #' @param options a list of other options (experimental).
 #'
 #'
-#' @return \code{Navae_ci_ols} returns an object of class \code{NAVAE_CI_Regression},
+#' @return \code{Navae_ci_ols} returns an object of class \code{NAVAE_CI_OLS},
 #' containing
 #' \itemize{
 #'   \item \code{ci_navae}: the NAVAE confidence interval
@@ -147,8 +147,8 @@
 #'
 #' @seealso
 #' The methods to display and process the output of this function:
-#' \code{\link{print.NAVAE_CI_Regression}} and
-#' \code{\link{as.data.frame.NAVAE_CI_Regression}}.
+#' \code{\link{print.NAVAE_CI_OLS}} and
+#' \code{\link{as.data.frame.NAVAE_CI_OLS}}.
 #'
 #' \code{\link{Navae_ci_mean}} which is the corresponding function for the
 #' estimation of the mean.
@@ -598,7 +598,7 @@ Navae_ci_ols <- function(
                 call = match.call(),
                 alpha = alpha)
 
-  class(result) <- "NAVAE_CI_Regression"
+  class(result) <- "NAVAE_CI_OLS"
 
   return (result)
 }
