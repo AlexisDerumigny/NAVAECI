@@ -9,8 +9,11 @@ Authors@R: c(
   person("Yannick", "Guyonvarch",, email = "yannick.guyonvarch@inrae.fr", role = "aut")
   )
 Description: Implements the non-asymptotically valid and asymptotically exact
-  confidence intervals in two cases: estimation of the mean and estimation of
-  (a linear combination of) the coefficients in a linear regression model.
+  confidence intervals in two cases:
+  estimation of the mean, and estimation of (a linear combination of)
+  the coefficients in a linear regression model,
+  following  (Derumigny, Girard and Guyonvarch, 2025)
+  <doi:10.48550/arXiv.2507.16776>.
 License: GPL-3
 Encoding: UTF-8
 Imports: 
