@@ -3,7 +3,7 @@
 \name{print.NAVAE_CI_Mean}
 \alias{print.NAVAE_CI_Mean}
 \alias{as.data.frame.NAVAE_CI_Mean}
-\title{Printing a NAVAE_CI_Mean object}
+\title{Print and coerce a NAVAE_CI_Mean object}
 \usage{
 \method{print}{NAVAE_CI_Mean}(x, verbose = 0, ...)
 
@@ -21,10 +21,10 @@ to more detailed output.}
 \code{print.Navae_ci_ols} prints information about \code{x} and returns it
 invisibly.
 
-\code{as.data.frame} returns a dataframe with 2 rows.
+\code{as.data.frame} returns a \code{data.frame} with 2 rows.
 }
 \description{
-Printing a NAVAE_CI_Mean object
+Print and coerce a NAVAE_CI_Mean object
 }
 \examples{
 n = 10000
@@ -35,4 +35,18 @@ print(myCI)
 as.data.frame(myCI)
 
 
+}
+\references{
+Derumigny, A., Girard, L., & Guyonvarch, Y. (2025).
+Can we have it all?
+Non-asymptotically valid and asymptotically exact confidence intervals
+for expectations and linear regressions.
+ArXiv preprint, \doi{10.48550/arXiv.2507.16776}
+}
+\seealso{
+The function to generate such objects \code{\link{Navae_ci_mean}}.
+
+The corresponding methods for the regression (OLS):
+\code{\link{print.NAVAE_CI_Regression}} and
+\code{\link{as.data.frame.NAVAE_CI_Regression}}.
 }

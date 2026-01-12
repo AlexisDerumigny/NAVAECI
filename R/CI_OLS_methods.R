@@ -41,6 +41,20 @@
 #'    }
 #' }
 #'
+#' @references
+#' Derumigny, A., Girard, L., & Guyonvarch, Y. (2025).
+#' Can we have it all?
+#' Non-asymptotically valid and asymptotically exact confidence intervals
+#' for expectations and linear regressions.
+#' ArXiv preprint, \doi{10.48550/arXiv.2507.16776}
+#'
+#' @seealso
+#' The function to generate such objects \code{\link{Navae_ci_ols}}.
+#'
+#' The corresponding methods for the mean:
+#' \code{\link{print.NAVAE_CI_Mean}} and
+#' \code{\link{as.data.frame.NAVAE_CI_Mean}}.
+#'
 #' @examples
 #' n = 4000
 #' X1 = rnorm(n, sd = 1)

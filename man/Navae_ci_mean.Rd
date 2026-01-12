@@ -20,8 +20,8 @@ Navae_ci_mean(
 \item{data}{vector of univariate observations.}
 
 \item{alpha}{this is 1 minus the confidence level of the CI; in other words,
-the nominal level is 1 - alpha.
-By default, \code{alpha} is set to \code{0.05}, yielding a 95\% CI.}
+the nominal level is \code{1 - alpha}.
+By default, \code{alpha} is set to \code{0.05}, yielding a \eqn{95\%} CI.}
 
 \item{a}{the free parameter \eqn{a} (or \eqn{a_n}) of the interval.
 It must be either \itemize{
@@ -37,7 +37,7 @@ It must be either \itemize{
 
 \item{bound_K}{bound on the kurtosis K_4(theta) of the distribution of the
 observations that are assumed to be i.i.d.
-The choice of 9 covers most "usual" distributions.
+The choice of \code{9} covers most "usual" distributions.
 If the argument is not provided (default argument \code{NULL}), the value used
 is the plug-in counterpart \eqn{\widehat{K}}, that is, the empirical kurtosis
 of the observations.}
@@ -70,21 +70,34 @@ Finally, if \code{choice} is equal to \code{"best"}, the bound used is the minim
 between the previous one (with \code{choice = "EE"}) and the bound \code{"BE"}.
 
 By default, following Remark 3.3 of the article, \code{"best"} is used and
-Derumigny et al. (2023)'s bounds is computed assuming i.i.d data and no other
+Derumigny et al. (2025)'s bounds is computed assuming i.i.d data and no other
 regularity assumptions (continuous or unskewed distribution) and the bound on
 kurtosis used is the one specified in the previous the argument \code{bound_K}.}
 
 \item{na.rm}{logical, should missing values in \code{data} be removed?}
 }
 \value{
-A list is output with various elements:
-- the CI;
-- the classical "asymptotic" CI based on CLT (as a comparison);
-- the regime of our CI (indicator of being in \eqn{\mathbb{R}} regime)
-- the bound delta_n used: its numerical value and whether it comes from BE or EE;
-- the value of the argument of the modified quantile;
-- the minimal alpha to exit the \eqn{\mathbb{R}} regime.
-- the value K used and the method
+\code{Navae_ci_mean} returns an object of class
+\code{NAVAE_CI_Mean}, containing:
+\itemize{
+  \item \code{ci_navae}: the NAVAE confidence interval
+
+  \item \code{ci_asymp}: the classical "asymptotic" CI based on CLT
+  (as a comparison)
+
+  \item \code{indicator_R_regime}: 1 if we are in the \eqn{\mathbb{R}} regime
+  and 0 else.
+
+  \item \code{delta_n}, \code{delta_n_from}: respectively the numerical value
+  of the bound \eqn{delta_n} used, and a character string \code{BE} or \code{EE}
+  indicating which type of inequality was used.
+
+  \item \code{minimal_alpha_to_exit_R_regime}: the minimal alpha to exit the
+  \eqn{\mathbb{R}} regime.
+
+  \item \code{bound_K_value}, \code{bound_K_method}: the value K used and the
+  method to compute it.
+}
 }
 \description{
 Compute NAVAE CI for the expectation based on empirical mean estimator
@@ -98,8 +111,9 @@ Navae_ci_mean(x, bound_K = 9, alpha = 0.2)
 Navae_ci_mean(x, bound_K = 9, alpha = 0.2, a = 1 + n^(-2/5))
 # Same as:
 Navae_ci_mean(x, bound_K = 9, alpha = 0.2, a = list(power_of_n_for_b = -2/5))
-Navae_ci_mean(x, bound_K = 9, alpha = 0.2)
-Navae_ci_mean(x, alpha = 0.2) # plug-in for K
+
+# plug-in for K ( = data-driven choice of K)
+Navae_ci_mean(x, alpha = 0.2)
 
 listParams1 = list(
   choice = "best",
@@ -119,14 +133,25 @@ Navae_ci_mean(x, alpha = 0.05, param_BE_EE = listParams2)
 
 }
 \references{
-For the Edgeworth expansion bounds:
+For the confidence interval:
+
+Derumigny, A., Girard, L., & Guyonvarch, Y. (2025).
+Can we have it all?
+Non-asymptotically valid and asymptotically exact confidence intervals
+for expectations and linear regressions.
+ArXiv preprint, \doi{10.48550/arXiv.2507.16776}.
+
+For the underlying Edgeworth expansion bounds:
 
 Derumigny A., Girard L., and Guyonvarch Y. (2023).
 Explicit non-asymptotic bounds for the distance to the first-order Edgeworth expansion,
 Sankhya A. \doi{10.1007/s13171-023-00320-y}
-\href{https://arxiv.org/abs/2101.05780}{arxiv:2101.05780}.
+ArXiv preprint: \doi{10.48550/arxiv.2101.05780}.
 }
 \seealso{
 \code{\link{Navae_ci_ols}} the corresponding function for the linear
 regression case.
+
+Some methods for the returned object: \code{\link{print.NAVAE_CI_Mean}} and
+\code{\link{as.data.frame.NAVAE_CI_Mean}}.
 }

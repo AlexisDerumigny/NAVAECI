@@ -60,7 +60,7 @@
 #' }
 #' The bounds that are not given are replaced by plug-ins.
 #' For K3_xi, lambda3_xi and K3tilde_xi, the bounds are obtained
-#' from K_xi (= K4_xi)
+#' from K_xi (= K4_xi).
 #'
 #' @param matrix_u each row of this matrix is understood as a new vector u
 #' for which a confidence interval should be computed.
@@ -104,28 +104,54 @@
 #' the progress of the computations and, in particular, the different terms that
 #' are computed.
 #'
-#' @param options a list of other options.
+#' @param options a list of other options (experimental).
 #'
 #'
-#' @return \code{Navae_ci_ols} returns an object of class \code{NAVAE_CI_Regression}.
+#' @return \code{Navae_ci_ols} returns an object of class \code{NAVAE_CI_Regression},
+#' containing
+#' \itemize{
+#'   \item \code{ci_navae}: the NAVAE confidence interval
 #'
+#'   \item \code{ci_asymp}: the classical "asymptotic" CI based on CLT
+#'   (as a comparison)
+#'
+#'   \item \code{allTuningParameters}, \code{allBounds}: information concerning
+#'   the tuning parameters and the bounds used (numerical value and origin)
+#'
+#'   \item \code{about_delta_n}, \code{delta_n_from}: respectively the numerical value
+#'   of the bound \eqn{delta_n} used, and a character string \code{BE} or \code{EE}
+#'   indicating which type of inequality was used.
+#'
+#'   \item \code{minimal_alpha_to_exit_R_regime}: the minimal alpha to exit the
+#'   \eqn{\mathbb{R}} regime.
+#'
+#'   \item \code{bound_K_value}, \code{bound_K_method}: the value K used and the
+#'   method to compute it.
+#' }
 #'
 #' @references
-#' For the Edgeworth expansion bounds:
+#' For the confidence interval:
+#'
+#' Derumigny, A., Girard, L., & Guyonvarch, Y. (2025).
+#' Can we have it all?
+#' Non-asymptotically valid and asymptotically exact confidence intervals
+#' for expectations and linear regressions.
+#' ArXiv preprint, \doi{10.48550/arXiv.2507.16776}.
+#'
+#' For the underlying Edgeworth expansion bounds:
 #'
 #' Derumigny A., Girard L., and Guyonvarch Y. (2023).
 #' Explicit non-asymptotic bounds for the distance to the first-order Edgeworth expansion,
 #' Sankhya A. \doi{10.1007/s13171-023-00320-y}
-#' \href{https://arxiv.org/abs/2101.05780}{arxiv:2101.05780}.
-#'
+#' ArXiv preprint: \doi{10.48550/arxiv.2101.05780}.
 #'
 #' @seealso
 #' The methods to display and process the output of this function:
 #' \code{\link{print.NAVAE_CI_Regression}} and
 #' \code{\link{as.data.frame.NAVAE_CI_Regression}}.
 #'
-#' \code{\link{Navae_ci_mean}} the corresponding function for the estimation of
-#' the mean.
+#' \code{\link{Navae_ci_mean}} which is the corresponding function for the
+#' estimation of the mean.
 #'
 #'
 #' @examples
@@ -139,15 +165,19 @@
 #' print(myCI)
 #'
 #'
-#' X1 = rnorm(n, sd = 4)
-#' X2 = X1 + rnorm(n, sd = 0.1)
-#' true_eps = rnorm(n)
-#' Y = 3 + 8 * X1 + 4 * X2 + true_eps
-#' X = cbind(X1, X2)
-#'
-#' myCI <- Navae_ci_ols(Y, X)
-#'
-#' print(myCI)
+#
+# # Example below needs high sample sizes.
+#
+# X1 = rnorm(n, sd = 4)
+# X2 = X1 + rnorm(n, sd = 0.1)
+# true_eps = rnorm(n)
+# Y = 3 + 8 * X1 + 4 * X2 + true_eps
+# X = cbind(X1, X2)
+#
+# myCI <- Navae_ci_ols(Y, X)
+#
+# print(myCI)
+#
 #'
 #' @export
 #'
