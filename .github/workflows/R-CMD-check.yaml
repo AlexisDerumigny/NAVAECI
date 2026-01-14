@@ -95,7 +95,7 @@ jobs:
 
           # finally attempt to install courier in user mode
           try {
-            & tlmgr install courier --usermode
+            & tlmgr install courier
             Write-Host "tlmgr install courier succeeded"
           } catch {
             Write-Host "tlmgr install courier failed: $_"
