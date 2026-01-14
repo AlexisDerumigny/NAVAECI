@@ -53,7 +53,7 @@ jobs:
         # to fix PDF error "Cannot find pcrr8t.mf."
         if: runner.os == 'Windows'
         run: |
-          Rscript -e 'tinytex::tlmgr_install("courier")'
+          tlmgr install courier --usermode
 
       - uses: r-lib/actions/check-r-package@v2
         with:
