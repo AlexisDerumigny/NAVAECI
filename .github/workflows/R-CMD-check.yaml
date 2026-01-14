@@ -51,3 +51,4 @@ jobs:
         with:
           upload-snapshots: true
           build_args: 'c("--compact-vignettes=gs+qpdf")'
+          args: 'c("--as-cran")'
