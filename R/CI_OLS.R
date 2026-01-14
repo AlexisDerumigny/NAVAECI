@@ -759,6 +759,7 @@ Compute_concentrationXXt <- function(bounded_case, bounds, delta, n, d, gamma)
 #' @param n sample size
 #' @param d dimension of A
 #'
+#' @noRd
 Compute_concentration_Bernstein <- function(B, C, delta, n, d)
 {
   return( sqrt(2 * B * log(2 * d / delta) / n) +
