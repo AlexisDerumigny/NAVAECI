@@ -56,16 +56,53 @@ jobs:
           # print tlmgr version (debug)
           tlmgr --version
 
-          # ensure the user tree exists (ignore errors)
-          try { tlmgr init-usertree } catch { Write-Host "tlmgr init-usertree failed (continuing)"; }
+          Write-Host "=== tlmgr version ==="
+          & tlmgr --version
 
-          # set CTAN mirror and update tlmgr metadata
-          tlmgr option repository http://mirror.ctan.org/systems/texlive/tlnet
-          try { tlmgr update --self --usermode } catch { Write-Host "tlmgr update --self failed (continuing)"; }
+          Write-Host "=== kpsewhich current vars ==="
+          try { & kpsewhich -var-value=TEXMFVAR } catch { Write-Host "kpsewhich TEXMFVAR: (not available)" }
+          try { & kpsewhich -var-value=TEXMFCONFIG } catch { Write-Host "kpsewhich TEXMFCONFIG: (not available)" }
+          try { & kpsewhich -var-value=TEXMFSYSVAR } catch { Write-Host "kpsewhich TEXMFSYSVAR: (not available)" }
+          try { & kpsewhich -var-value=TEXMFHOME } catch { Write-Host "kpsewhich TEXMFHOME: (not available)" }
 
-          # install the courier font in user mode
-          tlmgr install courier --usermode
+          Write-Host "AppData: $env:APPDATA"
+          Write-Host "UserProfile: $env:USERPROFILE"
 
+          # set TEXMFVAR / TEXMFCONFIG to TinyTeX user locations so updmap-user writes to user tree
+          $env:TEXMFVAR  = Join-Path $env:APPDATA 'TinyTeX\texmf-var'
+          $env:TEXMFCONFIG = Join-Path $env:APPDATA 'TinyTeX\texmf-config'
+          Write-Host "Set TEXMFVAR to $env:TEXMFVAR"
+          Write-Host "Set TEXMFCONFIG to $env:TEXMFCONFIG"
+
+          Write-Host "=== kpsewhich after setting vars ==="
+          try { & kpsewhich -var-value=TEXMFVAR } catch { Write-Host "kpsewhich TEXMFVAR: (not available)" }
+          try { & kpsewhich -var-value=TEXMFCONFIG } catch { Write-Host "kpsewhich TEXMFCONFIG: (not available)" }
+
+          # ensure the user tree exists (non-fatal)
+          try {
+            & tlmgr init-usertree
+          } catch {
+            Write-Host "tlmgr init-usertree failed (continuing): $_"
+          }
+
+          # set CTAN mirror and attempt to update tlmgr metadata (non-fatal)
+          & tlmgr option repository http://mirror.ctan.org/systems/texlive/tlnet
+          try {
+            & tlmgr update --self --usermode
+          } catch {
+            Write-Host "tlmgr update --self failed (continuing): $_"
+          }
+
+          # finally attempt to install courier in user mode
+          try {
+            & tlmgr install courier --usermode
+            Write-Host "tlmgr install courier succeeded"
+          } catch {
+            Write-Host "tlmgr install courier failed: $_"
+            exit 1
+          }
+
+          
       - uses: r-lib/actions/check-r-package@v2
         with:
           upload-snapshots: true
