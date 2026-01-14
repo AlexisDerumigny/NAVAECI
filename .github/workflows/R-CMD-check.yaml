@@ -49,6 +49,12 @@ jobs:
           
       - uses: r-lib/actions/setup-tinytex@v2
 
+      - name: Install courier font on Windows
+        # to fix PDF error "Cannot find pcrr8t.mf."
+        if: runner.os == 'Windows'
+        run: |
+          Rscript -e 'tinytex::tlmgr_install("courier")'
+
       - uses: r-lib/actions/check-r-package@v2
         with:
           upload-snapshots: true
