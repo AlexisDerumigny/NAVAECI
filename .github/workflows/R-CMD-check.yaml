@@ -53,6 +53,17 @@ jobs:
         # to fix PDF error "Cannot find pcrr8t.mf."
         if: runner.os == 'Windows'
         run: |
+          # print tlmgr version (debug)
+          tlmgr --version
+
+          # ensure the user tree exists (ignore errors)
+          try { tlmgr init-usertree } catch { Write-Host "tlmgr init-usertree failed (continuing)"; }
+
+          # set CTAN mirror and update tlmgr metadata
+          tlmgr option repository http://mirror.ctan.org/systems/texlive/tlnet
+          try { tlmgr update --self --usermode } catch { Write-Host "tlmgr update --self failed (continuing)"; }
+
+          # install the courier font in user mode
           tlmgr install courier --usermode
 
       - uses: r-lib/actions/check-r-package@v2
