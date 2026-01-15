@@ -89,7 +89,7 @@ Otherwise, \code{param_BE_EE} is a list of four objects: \itemize{
      \item If equal to \code{"EE"}, the bound used is Derumigny et al. (2023)'s
      bound computed using the parameters specified by the rest of \code{param_BE_EE},
      as described in the arguments of the function
-     \code{BoundEdgeworth::\link[BoundEdgeworth]{Bound_EE1}}.
+     %\code{BoundEdgeworth::\link[BoundEdgeworth]{Bound_EE1}}.
      Together, these last three items of the list specify the bounds and
      assumptions used to compute the bound \eqn{\delta_n} from Derumigny et al. (2023).
 
