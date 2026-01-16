@@ -54,7 +54,7 @@ jobs:
         if: runner.os == 'Windows'
         run: |
           tlmgr --version
-          tlmgr install courier
+          tlmgr install courier makeindex
                     
       - uses: r-lib/actions/check-r-package@v2
         with:
