@@ -63,7 +63,7 @@ Otherwise, \code{param_BE_EE} is a list of four objects: \itemize{
   \item \code{eps}: value between 0 and 1/3,
 }
 as described in the arguments of the function
-%\code{BoundEdgeworth::\link[BoundEdgeworth]{Bound_EE1}}.
+\code{BoundEdgeworth::\link[BoundEdgeworth]{Bound_EE1}}.
 Together, they specify the bounds and assumptions used to compute the
 bound \eqn{\delta_n} from Derumigny et al. (2023).
 Finally, if \code{choice} is equal to \code{"best"}, the bound used is the minimum
