@@ -1,3 +1,7 @@
+The LaTeX error mentionned in the previous submission (v0.1.0)
+have been fixed.
+
+
 ## Test environments
 
 * Windows 11 (release)
